@@ -21,3 +21,17 @@ Details are available in docker-compose.yml
 ```aidl
 docker compose up dev-db
 ```
+
+## Running the application
+
+![img.png](images/img.png)
+
+Check the build.gradle file to see dependencies required.
+
+We can run the application by using the IDE action "bootRun" as seen in the image above.
+
+Or we can also do:
+
+```
+./gradlew bootRun
+```
