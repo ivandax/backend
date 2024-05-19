@@ -1,0 +1,47 @@
+version: '2'
+
+services:
+  backend_service:
+    image: 'backend_service:latest'
+    ports:
+      - "8080:8080"
+    build:
+      context: .
+    container_name: backend_service
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_USER}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE=UTC
+      - SPRING_MAIL_HOST=${MAIL_HOST}
+      - SPRING_MAIL_PORT=${MAIL_PORT}
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+      - CUSTOM_AUTHENTICATION_SECRET=${JWT_AUTHENTICATION_SECRET}
+      - CUSTOM_VERIFICATION_SECRET=${JWT_VERIFICATION_SECRET}
+      - CUSTOM_PASSWORD_RECOVERY_SECRET=${JWT_PASSWORD_RECOVERY_SECRET}
+      - CUSTOM_ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
+
+  db:
+    image: 'postgres:11.18-alpine'
+    container_name: db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+
+  dev-db:
+    image: 'postgres:11.18-alpine'
+    container_name: backend-dev-db
+    ports:
+      - 5434:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
