@@ -1,6 +1,7 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.repository.UserRepository;
+import com.backend.demo.service.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +44,12 @@ public class AuthControllerTest {
     @BeforeEach
     void setup() {
         userRepository.deleteAll();
+
+        User devUser = new User();
+        devUser.setUsername("dev@mail.com");
+        devUser.setPassword("test");
+
+        userRepository.saveAll(List.of(devUser));
     }
 
     @Test
@@ -61,7 +68,7 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        assertEquals(0, userRepository.findAll().size());
+        assertEquals(1, userRepository.findAll().size());
     }
 
     @Test
@@ -73,7 +80,7 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        assertEquals(0, userRepository.findAll().size());
+        assertEquals(1, userRepository.findAll().size());
         assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body is missing"));
     }
 
@@ -93,7 +100,27 @@ public class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
+        assertEquals(2, userRepository.findAll().size());
+    }
+
+    @Test
+    @DisplayName("Failure: User already exists")
+    public void signUpFailureOnExistingUser() throws Exception {
+
+        record SignUpRequest(String username, String password) {}
+
+        SignUpRequest request = new SignUpRequest("dev@mail.com", "test1234");
+
+        String payload = objectMapper.writeValueAsString(request);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
         assertEquals(1, userRepository.findAll().size());
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Username already exists"));
     }
 
 }
