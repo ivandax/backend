@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -121,6 +120,27 @@ public class AuthControllerTest {
 
         assertEquals(1, userRepository.findAll().size());
         assertTrue(mvcResult.getResponse().getContentAsString().contains("Username already exists"));
+    }
+
+    @Test
+    @DisplayName("Failure: Badly formatted email")
+    public void signUpFailureOnBadEmailAddress() throws Exception {
+
+        record SignUpRequest(String username, String password) {}
+
+        SignUpRequest request = new SignUpRequest("test", "test1234");
+
+        String payload = objectMapper.writeValueAsString(request);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertEquals(1, userRepository.findAll().size());
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Could not validate provided data. Please review data sent"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("must be a well-formed email address"));
     }
 
 }

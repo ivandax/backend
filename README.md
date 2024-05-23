@@ -39,6 +39,12 @@ Or we can also do:
 
 ## Running the tests
 
+First, you need to run the docker test db:
+
+```aidl
+docker compose up test-db
+```
+
 Check the build.gradle file to see dependencies required.
 
 ![img.png](images/imgTest.png)
