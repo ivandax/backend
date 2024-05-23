@@ -18,6 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -61,6 +62,19 @@ public class AuthControllerTest {
                 .andReturn();
 
         assertEquals(0, userRepository.findAll().size());
+    }
+
+    @Test
+    @DisplayName("Failure: Sign up with empty body")
+    public void signUpFailureBEmptyBody() throws Exception {
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertEquals(0, userRepository.findAll().size());
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body is missing"));
     }
 
     @Test
