@@ -1,5 +1,6 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.errors.ErrorResponse;
 import com.backend.demo.service.model.User;
 import com.backend.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,9 @@ public class UserController {
             User registeredUser = userService.registerNewUser(user);
             return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST,
+                    e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
     }
 }
