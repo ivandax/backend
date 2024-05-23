@@ -35,3 +35,13 @@ Or we can also do:
 ```
 ./gradlew bootRun
 ```
+
+
+## Running the tests
+
+Check the build.gradle file to see dependencies required.
+
+![img.png](images/imgTest.png)
+
+We can run the application by using the IDE action "verification" -> "test" as seen in the image 
+above.
