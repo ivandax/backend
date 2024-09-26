@@ -15,6 +15,8 @@ Java HotSpot(TM) 64-Bit Server VM (build 17.0.1+12-LTS-39, mixed mode, sharing)
 
 ## Running the application
 
+You need docker desktop running to start the database. Then:
+
 ```
 docker compose up dev-db
 ```
