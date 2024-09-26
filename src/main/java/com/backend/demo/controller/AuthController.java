@@ -1,7 +1,7 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.errors.ErrorResponse;
-import com.backend.demo.service.model.User;
+import com.backend.demo.model.User;
 import com.backend.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

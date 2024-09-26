@@ -13,16 +13,11 @@ Java(TM) SE Runtime Environment (build 17.0.1+12-LTS-39)
 Java HotSpot(TM) 64-Bit Server VM (build 17.0.1+12-LTS-39, mixed mode, sharing)
 ```
 
-## Database
+## Running the application
 
-For ease of development, we rely on docker desktop to start a Postgres instance. 
-Details are available in docker-compose.yml
-
-```aidl
+```
 docker compose up dev-db
 ```
-
-## Running the application
 
 ![img.png](images/img.png)
 

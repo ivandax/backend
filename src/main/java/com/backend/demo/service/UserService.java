@@ -1,6 +1,6 @@
 package com.backend.demo.service;
 
-import com.backend.demo.service.model.User;
+import com.backend.demo.model.User;
 import com.backend.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

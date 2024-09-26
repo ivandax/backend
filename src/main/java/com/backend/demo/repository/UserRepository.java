@@ -1,6 +1,6 @@
 package com.backend.demo.repository;
 
-import com.backend.demo.service.model.User;
+import com.backend.demo.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

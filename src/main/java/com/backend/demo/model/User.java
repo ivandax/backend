@@ -1,4 +1,4 @@
-package com.backend.demo.service.model;
+package com.backend.demo.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
