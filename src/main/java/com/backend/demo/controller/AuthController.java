@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.util.Date;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -26,5 +28,11 @@ public class AuthController {
         String organizationName = dto.getOrganizationName();
         userService.createUserAndOrganization(username, password, organizationName,
                 request);
+    }
+
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.CREATED)
+    public String authTest() {
+        return new Date().toString();
     }
 }
