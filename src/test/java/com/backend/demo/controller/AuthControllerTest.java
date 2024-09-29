@@ -1,7 +1,10 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.repository.OrganizationRepository;
+import com.backend.demo.repository.RoleRepository;
 import com.backend.demo.repository.UserRepository;
 import com.backend.demo.model.User;
+import com.backend.demo.service.mailing.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -33,30 +37,34 @@ public class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private EmailService emailService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
     @BeforeEach
     void setup() {
+        roleRepository.deleteAll();
+        organizationRepository.deleteAll();
         userRepository.deleteAll();
-
-        User devUser = new User();
-        devUser.setUsername("dev@mail.com");
-        devUser.setPassword("test");
-
-        userRepository.saveAll(List.of(devUser));
     }
 
     @Test
     @DisplayName("Failure: Sign up with wrong method - GET")
     public void signUpFailureByMethod() throws Exception {
+        record SignUpRequest(String username, String password, String organizationname) {}
 
-        record SignUpRequest(String username, String password) {}
-
-        SignUpRequest request = new SignUpRequest("test@mail.com", "test1234");
+        SignUpRequest request = new SignUpRequest("dev@mail.com", "test1234", "Test Org");
 
         String payload = objectMapper.writeValueAsString(request);
 
