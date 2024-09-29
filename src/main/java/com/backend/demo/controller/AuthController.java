@@ -1,15 +1,18 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.dtos.SignUpDTO;
+import com.backend.demo.dtos.VerificationTokenRequestDTO;
 import com.backend.demo.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.io.IOException;
 import java.util.Date;
 
 @RestController
@@ -28,6 +31,14 @@ public class AuthController {
         String organizationName = dto.getOrganizationName();
         userService.createUserAndOrganization(username, password, organizationName,
                 request);
+    }
+
+    @RequestMapping(value = "/verify-token", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    public void verifyToken(HttpServletResponse response,
+                            @RequestBody @Valid VerificationTokenRequestDTO dto) throws IOException {
+        String verificationToken = dto.getVerificationToken();
+        userService.verifyToken(response, verificationToken);
     }
 
     @RequestMapping(value = "/test", method = RequestMethod.GET)

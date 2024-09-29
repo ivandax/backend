@@ -1,6 +1,7 @@
 package com.backend.demo.service;
 
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
@@ -13,11 +14,13 @@ import com.backend.demo.repository.UserVerificationTokenRepository;
 import com.backend.demo.service.mailing.EmailService;
 import com.backend.demo.utils.JwtUtils;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,5 +79,29 @@ public class UserService {
 
         emailService.sendUserVerificationTokenMessage(username,
                 "Taskmaster: Please verify your account", verificationToken);
+    }
+
+    public void verifyToken(HttpServletResponse response, String verificationToken) throws IOException {
+        try {
+            Algorithm algorithm =
+                    Algorithm.HMAC256(configProperties.getVerificationSecret().getBytes());
+            String username = JwtUtils.getUsernameFromJWT(algorithm, verificationToken);
+            Optional<User> maybeUser = userRepository.findByUsername(username);
+            if (maybeUser.isEmpty()) {
+                throw new IllegalArgumentException("User not found");
+            }
+            User foundUser = maybeUser.get();
+            Optional<UserVerificationToken> persistedVerificationToken =
+                    userVerificationTokenRepository.findByBelongsTo(foundUser);
+            if (persistedVerificationToken.isPresent()) {
+                foundUser.setVerified(true);
+                userRepository.save(foundUser);
+                userVerificationTokenRepository.delete(persistedVerificationToken.get());
+            } else {
+                throw new IllegalArgumentException("Error with the provided verification token");
+            }
+        } catch (JWTVerificationException exception) {
+            JwtUtils.catchVerificationTokenError(response, exception);
+        }
     }
 }
