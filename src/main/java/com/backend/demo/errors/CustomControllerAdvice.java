@@ -15,6 +15,28 @@ import java.io.StringWriter;
 @ControllerAdvice
 public class CustomControllerAdvice {
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            Exception e
+    ) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        // converting the stack trace to String
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
+        String stackTrace = stringWriter.toString();
+
+        return new ResponseEntity<>(
+                new ErrorResponse(
+                        status,
+                        e.getMessage(),
+                        stackTrace
+                ),
+                status
+        );
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHTTPMessageNotReadableException(
             Exception e

@@ -1,5 +1,6 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
 import com.backend.demo.repository.OrganizationRepository;
 import com.backend.demo.repository.RoleRepository;
@@ -67,12 +68,23 @@ public class AuthControllerTest {
         Role dev = new Role("DEV");
         Role admin = new Role("ADMIN");
         roleRepository.saveAll(List.of(dev, admin));
+
+        Organization org = new Organization("Main", 10);
+        organizationRepository.save(org);
+
+        User devUser = new User();
+        devUser.addRole(dev);
+        devUser.setUsername("dev@mail.com");
+        devUser.setPassword("testPassword");
+        devUser.setOrganization(org);
+        userRepository.save(devUser);
     }
 
     @Test
     @DisplayName("Failure: Sign up with wrong method - GET")
     public void signUpFailureByMethod() throws Exception {
-        record SignUpRequest(String username, String password, String organizationName) {}
+        record SignUpRequest(String username, String password, String organizationName) {
+        }
 
         SignUpRequest request = new SignUpRequest("dev@mail.com", "test1234", "Test Org");
 
@@ -95,16 +107,18 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body is missing"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body " +
+                "is missing"));
     }
 
     @Test
     @DisplayName("Failure: Badly formatted email")
     public void signUpFailureOnBadEmailAddress() throws Exception {
 
-        record SignUpRequest(String email, String password, String organizationName) {}
+        record SignUpRequest(String email, String password, String organizationName) {
+        }
 
-        SignUpRequest request = new SignUpRequest("test", "test1234", "Main Organization");
+        SignUpRequest request = new SignUpRequest("test", "test1234", "Test Org");
 
         String payload = objectMapper.writeValueAsString(request);
 
@@ -114,17 +128,40 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("Could not validate provided data. Please review data sent"));
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("must be a well-formed email address"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Could not validate " +
+                "provided data. Please review data sent"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("must be a well-formed " +
+                "email address"));
+    }
+
+    @Test
+    @DisplayName("Failure: User already exists")
+    public void signUpFailureUserAlreadyExists() throws Exception {
+
+        record SignUpRequest(String email, String password, String organizationName) {
+        }
+
+        SignUpRequest request = new SignUpRequest("dev@mail.com", "test1234", "Test Org");
+
+        String payload = objectMapper.writeValueAsString(request);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/sign-up")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("This username already exists"));
     }
 
     @Test
     @DisplayName("Success: Sign up with username and password")
     public void signUpSuccess() throws Exception {
 
-        record SignUpRequest(String email, String password, String organizationName) {}
+        record SignUpRequest(String email, String password, String organizationName) {
+        }
 
-        SignUpRequest request = new SignUpRequest("test@mail.com", "test1234", "Main Organization");
+        SignUpRequest request = new SignUpRequest("test@mail.com", "test1234", "Test Org");
 
         String payload = objectMapper.writeValueAsString(request);
 
@@ -134,14 +171,7 @@ public class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        assertEquals(1, userRepository.findAll().size());
-    }
-
-
-    @Test
-    void testBadlyFormattedEmail() {
-        // TODO: Implement this test case
-        // This test is not yet implemented.
+        assertEquals(2, userRepository.findAll().size());
     }
 
 }
