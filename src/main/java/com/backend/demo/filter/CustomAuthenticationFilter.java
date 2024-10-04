@@ -7,6 +7,7 @@ import com.backend.demo.repository.UserRepository;
 import com.backend.demo.utils.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,5 +60,13 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 userDetails, algorithm);
         response.setContentType(APPLICATION_JSON_VALUE);
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              AuthenticationException failed) throws IOException,
+            ServletException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN); // Set 403 status
     }
 }

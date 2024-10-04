@@ -1,5 +1,6 @@
 package com.backend.demo.service;
 
+import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.model.User;
 import com.backend.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .roles("USER")
-                .build();
+        CustomUserDetails userDetails = new CustomUserDetails();
+        userDetails.setUser(user);
+        return userDetails;
     }
 }
