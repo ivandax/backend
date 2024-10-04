@@ -7,7 +7,6 @@ import com.backend.demo.repository.UserRepository;
 import com.backend.demo.utils.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -44,6 +44,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                                                 HttpServletResponse response) throws AuthenticationException {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
+        System.out.println("test test" + username + password);
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(username, password);
         return authenticationManager.authenticate(authToken);
@@ -65,8 +66,16 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
-                                              AuthenticationException failed) throws IOException,
-            ServletException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN); // Set 403 status
+                                              AuthenticationException failed) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Authentication failed");
+        errorResponse.put("message", failed.getMessage());
+
+        String jsonResponse = new ObjectMapper().writeValueAsString(errorResponse);
+
+        response.setContentType("application/json");
+        response.getWriter().write(jsonResponse);
+        response.getWriter().flush();
     }
 }
