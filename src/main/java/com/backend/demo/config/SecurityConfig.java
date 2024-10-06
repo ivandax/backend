@@ -40,18 +40,15 @@ public class SecurityConfig {
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
-
-        authenticationManagerBuilder.userDetailsService(userDetailsService)
+        authenticationManagerBuilder
+                .userDetailsService(userDetailsService)
                 .passwordEncoder(passwordEncoder());
-
         return authenticationManagerBuilder.build();
     }
 
     @Bean
-    public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http) throws Exception {
-        CustomAuthenticationFilter filter = new CustomAuthenticationFilter();
-        filter.setAuthenticationManager(authManager(http)); // Set the auth manager
-        return filter;
+    public CustomAuthenticationFilter customAuthenticationFilter() {
+        return new CustomAuthenticationFilter();
     }
 
     @Bean
@@ -79,7 +76,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/verify-token").permitAll()
                         .anyRequest()
                         .authenticated()
-                ).addFilter(customAuthenticationFilter(http));
+                ).addFilter(customAuthenticationFilter());
 
         return http.build();
     }
