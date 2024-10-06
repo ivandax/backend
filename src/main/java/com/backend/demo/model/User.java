@@ -53,6 +53,7 @@ public class User {
         setUpdated();
         setUsername(username);
         setPassword(password);
+        setActive();
     }
 
     public Integer getUserId() {
@@ -131,7 +132,11 @@ public class User {
         return userStatus == UserStatus.ACTIVE;
     }
 
-    public void setActive(UserStatus status) {
-        userStatus = status;
+    public void setUserStatus(UserStatus status) {
+        this.userStatus = status;
+    }
+
+    public void setActive() {
+        this.userStatus = UserStatus.ACTIVE;
     }
 }

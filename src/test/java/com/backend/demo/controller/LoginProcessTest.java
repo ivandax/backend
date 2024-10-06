@@ -82,6 +82,8 @@ public class LoginProcessTest {
         devUser.addRole(dev);
         devUser.setUsername("dev@mail.com");
         devUser.setPassword("testPassword");
+        devUser.setActive();
+        devUser.setVerified(true);
         devUser.setOrganization(org);
         userRepository.save(devUser);
     }
@@ -104,9 +106,23 @@ public class LoginProcessTest {
         MvcResult mvcResult = mockMvc.perform(post("/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
-                        .param("username", "dev@mail.com")
+                        .param("username", "noExist@mail.com")
                         .param("password", "testPassword"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Bad credentials"));
+    }
+
+    @Test
+    @DisplayName("Login failure: Badly formatted email")
+    public void loginFailureBadlyFormattedEmail() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "pizzaPizza")
+                        .param("password", "testPassword"))
+                .andExpect(status().isUnauthorized())
                 .andReturn();
 
         assertTrue(mvcResult.getResponse().getContentAsString().contains("Bad credentials"));

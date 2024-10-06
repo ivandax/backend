@@ -44,7 +44,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                                                 HttpServletResponse response) throws AuthenticationException {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        System.out.println("test test" + username + password);
+
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(username, password);
         return authenticationManager.authenticate(authToken);
