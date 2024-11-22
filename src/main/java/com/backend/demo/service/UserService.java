@@ -3,6 +3,8 @@ package com.backend.demo.service;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.backend.demo.config.ConfigProperties;
+import com.backend.demo.dtos.ResourceResponseDTO;
+import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.User;
@@ -13,9 +15,14 @@ import com.backend.demo.repository.UserRepository;
 import com.backend.demo.repository.UserVerificationTokenRepository;
 import com.backend.demo.service.mailing.EmailService;
 import com.backend.demo.utils.JwtUtils;
+import com.backend.demo.utils.PaginationUtils;
+import com.backend.demo.utils.UserUtils;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -103,5 +111,19 @@ public class UserService {
         } catch (JWTVerificationException exception) {
             JwtUtils.catchVerificationTokenError(response, exception);
         }
+    }
+
+    public ResourceResponseDTO<UserResponseDTO> findAll(Integer page, Integer perPage,
+                                                        String sortBy,
+                                                        Sort.Direction sortDirection) {
+        Pageable paginationConfig = PaginationUtils.getPaginationConfig(page, perPage, sortBy,
+                sortDirection);
+        Page<User> users = userRepository.findAll(paginationConfig);
+        return new ResourceResponseDTO<>(
+                users.stream().map(UserUtils::userToUserResponseDTO).collect(Collectors.toList()),
+                users.getTotalPages(),
+                PaginationUtils.getPage(page),
+                PaginationUtils.getPerPage(perPage)
+        );
     }
 }

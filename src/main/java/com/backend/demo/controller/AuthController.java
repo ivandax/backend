@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -45,5 +47,14 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public String authTest() {
         return new Date().toString();
+    }
+
+    @RequestMapping(value = "/test-for-admin-role", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Map<String, String> authTestForAdminRole() {
+        Map<String, String> response = new HashMap<>();
+        response.put("date", new Date().toString());
+        response.put("message", "You have admin access.");
+        return response;
     }
 }
