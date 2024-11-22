@@ -3,6 +3,7 @@ package com.backend.demo.errors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -99,6 +100,24 @@ public class CustomControllerAdvice {
                 ),
                 status
         );
+    }
+
+    @ExceptionHandler(MailAuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleMailAuthenticationException(MailAuthenticationException e) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
+        String stackTrace = stringWriter.toString();
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                status,
+                e.getMessage(),
+                stackTrace
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
 
