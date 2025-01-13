@@ -69,6 +69,11 @@ public class UserService {
         if (user.isPresent()) {
             throw new IllegalArgumentException("This username already exists");
         }
+        Optional<Organization> organization =
+                organizationRepository.findByOrganizationName(organizationName);
+        if (organization.isPresent()) {
+            throw new IllegalArgumentException("This organization name already exists");
+        }
         Organization newOrganization = new Organization(organizationName, 10);
         organizationRepository.save(newOrganization);
 

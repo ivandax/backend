@@ -157,6 +157,27 @@ public class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("Failure: Organization already exists")
+    public void signUpFailureOrganizationAlreadyExists() throws Exception {
+
+        record SignUpRequest(String email, String password, String organizationName) {
+        }
+
+        SignUpRequest request = new SignUpRequest("new@mail.com", "test1234", "Main");
+
+        String payload = objectMapper.writeValueAsString(request);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/sign-up")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("This organization name already " +
+                "exists"));
+    }
+
+    @Test
     @DisplayName("Success: Sign up with username and password")
     public void signUpSuccess() throws Exception {
 
