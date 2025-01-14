@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,20 +74,73 @@ public class UserControllerTest {
         Organization org = new Organization("Main", 10);
         organizationRepository.save(org);
 
-        User devUser = new User();
-        devUser.addRole(dev);
-        devUser.setUsername("dev@mail.com");
-        devUser.setPassword("testPassword");
-        devUser.setOrganization(org);
-        userRepository.save(devUser);
+        User adminUser = new User();
+        adminUser.addRole(admin);
+        adminUser.setUsername("admin@mail.com");
+        adminUser.setPassword("testPassword");
+        adminUser.setOrganization(org);
+        adminUser.setVerified(true);
+        userRepository.save(adminUser);
+
+        User noRoleUser = new User();
+        noRoleUser.setUsername("no_role@mail.com");
+        noRoleUser.setPassword("testPassword");
+        noRoleUser.setOrganization(org);
+        noRoleUser.setVerified(true);
+        userRepository.save(noRoleUser);
+    }
+
+    @Test
+    @DisplayName("Failure: Get users without auth")
+    public void getUsersFailureNoAuth() throws Exception {
+        mockMvc.perform(get("/api/users")).andExpect(status().isForbidden()).andReturn();
+    }
+
+    @Test
+    @DisplayName("Failure: Get users without Admin role")
+    public void getUsersFailureNoAdminRole() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "no_role@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(get("/api/users")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("Success: Get users")
     public void getUsersSuccess() throws Exception {
-        MvcResult usersResult =
-                mockMvc.perform(get("/api/users")).andExpect(status().isOk()).andReturn();
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        assertTrue(usersResult.getResponse().getContentAsString().contains("dev@mail.com"));
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+
+        MvcResult usersResult =
+                mockMvc.perform(get("/api/users")
+                                .header("authorization", "Bearer " + accessToken))
+                        .andExpect(status().isOk()).andReturn();
+        System.out.println(usersResult);
+
+        assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_role@mail.com"));
     }
 }

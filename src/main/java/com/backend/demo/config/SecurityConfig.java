@@ -1,6 +1,7 @@
 package com.backend.demo.config;
 
 import com.backend.demo.filter.CustomAuthenticationFilter;
+import com.backend.demo.filter.CustomAuthorizationFilter;
 import com.backend.demo.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -52,6 +54,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CustomAuthorizationFilter customAuthorizationFilter() {
+        return new CustomAuthorizationFilter();
+    }
+
+    @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(configProperties.getAllowedOrigin()));
@@ -70,12 +77,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(customAuthorizationFilter(),
+                        UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/test").permitAll()
                         .requestMatchers("/api/auth/sign-up").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/verify-token").permitAll()
-                        .requestMatchers("/api/users").permitAll()
+                        .requestMatchers("/api/users").hasRole("ADMIN")
                         .anyRequest()
                         .authenticated()
                 ).addFilter(customAuthenticationFilter());
