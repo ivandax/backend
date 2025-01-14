@@ -3,11 +3,9 @@ package com.backend.demo.controller;
 import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.User;
-import com.backend.demo.repository.OrganizationRepository;
-import com.backend.demo.repository.RoleRepository;
-import com.backend.demo.repository.UserRepository;
-import com.backend.demo.repository.UserVerificationTokenRepository;
+import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +21,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -51,6 +49,9 @@ public class LoginProcessTest {
     private UserRepository userRepository;
 
     @Autowired
+    private InvalidTokenRepository invalidTokenRepository;
+
+    @Autowired
     private OrganizationRepository organizationRepository;
 
     @Autowired
@@ -61,6 +62,7 @@ public class LoginProcessTest {
 
     @BeforeEach
     void setup() {
+        invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
@@ -141,6 +143,50 @@ public class LoginProcessTest {
 
         assertTrue(mvcResult.getResponse().getContentAsString().contains("access_token"));
         assertTrue(mvcResult.getResponse().getContentAsString().contains("refresh_token"));
+    }
+
+    @Test
+    @DisplayName("Logout failure: Missing token")
+    public void logoutFailureMissingToken() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "dev@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        MvcResult logoutResult = mockMvc.perform(post("/api/auth/logout")
+                        .header("authorization", ""))
+                .andExpect(status().isInternalServerError()).andReturn();
+
+        assertTrue(logoutResult.getResponse().getContentAsString().contains("Token is missing"));
+    }
+
+    @Test
+    @DisplayName("Logout success")
+    public void logoutSuccess() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "dev@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(post("/api/auth/logout")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
     }
 
 }

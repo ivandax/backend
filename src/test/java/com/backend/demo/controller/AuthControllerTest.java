@@ -3,11 +3,8 @@ package com.backend.demo.controller;
 import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.UserVerificationToken;
-import com.backend.demo.repository.OrganizationRepository;
-import com.backend.demo.repository.RoleRepository;
-import com.backend.demo.repository.UserRepository;
+import com.backend.demo.repository.*;
 import com.backend.demo.model.User;
-import com.backend.demo.repository.UserVerificationTokenRepository;
 import com.backend.demo.service.mailing.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,10 +54,14 @@ public class AuthControllerTest {
     private UserVerificationTokenRepository userVerificationTokenRepository;
 
     @Autowired
+    private InvalidTokenRepository invalidTokenRepository;
+
+    @Autowired
     private RoleRepository roleRepository;
 
     @BeforeEach
     void setup() {
+        invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();

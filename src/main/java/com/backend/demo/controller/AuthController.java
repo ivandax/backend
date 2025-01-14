@@ -2,10 +2,12 @@ package com.backend.demo.controller;
 
 import com.backend.demo.dtos.SignUpDTO;
 import com.backend.demo.dtos.VerificationTokenRequestDTO;
+import com.backend.demo.service.LogoutService;
 import com.backend.demo.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +19,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LogoutService logoutService;
 
     @RequestMapping(value = "/sign-up", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
@@ -56,5 +63,17 @@ public class AuthController {
         response.put("date", new Date().toString());
         response.put("message", "You have admin access.");
         return response;
+    }
+
+    @RequestMapping(value = "/logout", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    public void logout(HttpServletRequest request) throws BadRequestException {
+        String authorizationHeader = request.getHeader(AUTHORIZATION);
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring("Bearer ".length());
+            logoutService.logout(token);
+        } else {
+            throw new BadRequestException("Token is missing");
+        }
     }
 }
