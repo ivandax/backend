@@ -57,10 +57,10 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED);
                 }
                 String username = decodedJWT.getSubject();
-                String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
+                String[] permissions = decodedJWT.getClaim("permissions").asArray(String.class);
                 Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                stream(roles).forEach(role -> {
-                    authorities.add(new SimpleGrantedAuthority(role));
+                stream(permissions).forEach(permission -> {
+                    authorities.add(new SimpleGrantedAuthority(permission));
                 });
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(username, null, authorities);

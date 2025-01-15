@@ -11,13 +11,19 @@ import java.util.HashSet;
 
 public class CustomUserDetails implements UserDetails {
     private User user;
+    private final Collection<String> permissions;
+
+    public CustomUserDetails(User user, Collection<String> permissions) {
+        this.user = user;
+        this.permissions = permissions;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new HashSet<>();
 
-        for (Role role : user.getRoles()) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+        for (String permission : permissions) {
+            authorities.add(new SimpleGrantedAuthority(permission));
         }
 
         return authorities;

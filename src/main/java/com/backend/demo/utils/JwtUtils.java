@@ -36,7 +36,7 @@ public class JwtUtils {
                         .withSubject(userDetails.getUsername())
                         .withExpiresAt(new Date(System.currentTimeMillis() + (long) token_minutes_duration * 60 * 1000))
                         .withIssuer(request.getRequestURL().toString())
-                        .withClaim("roles",
+                        .withClaim("permissions",
                                 userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                         .sign(algorithm);
         String refreshToken =
