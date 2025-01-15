@@ -1,9 +1,6 @@
 package com.backend.demo.controller;
 
-import com.backend.demo.model.Organization;
-import com.backend.demo.model.Role;
-import com.backend.demo.model.User;
-import com.backend.demo.model.UserVerificationToken;
+import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,16 +57,24 @@ public class UserControllerTest {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private PermissionRepository permissionRepository;
+
     @BeforeEach
     void setup() {
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
+        permissionRepository.deleteAll();
         organizationRepository.deleteAll();
+
+        Permission permissionReadUsers = new Permission("read:users");
+        permissionRepository.saveAll(List.of(permissionReadUsers));
 
         Role dev = new Role("DEV");
         Role admin = new Role("ADMIN");
+        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers)));
         roleRepository.saveAll(List.of(dev, admin));
 
         Organization org = new Organization("Main", 10);
@@ -83,7 +89,7 @@ public class UserControllerTest {
         userRepository.save(adminUser);
 
         User noRoleUser = new User();
-        noRoleUser.setUsername("no_role@mail.com");
+        noRoleUser.setUsername("no_permissions@mail.com");
         noRoleUser.setPassword("testPassword");
         noRoleUser.setOrganization(org);
         noRoleUser.setVerified(true);
@@ -97,12 +103,12 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Failure: Get users without Admin role")
+    @DisplayName("Failure: Get users without read:users permission")
     public void getUsersFailureNoAdminRole() throws Exception {
         MvcResult loginResult = mockMvc.perform(post("/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
-                        .param("username", "no_role@mail.com")
+                        .param("username", "no_permissions@mail.com")
                         .param("password", "testPassword"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -141,6 +147,6 @@ public class UserControllerTest {
         System.out.println(usersResult);
 
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_role@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
     }
 }
