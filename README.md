@@ -2,6 +2,13 @@
 
 Project to setup a backend service with Gradle, Springboot and Postgres.
 
+# Quickstart
+
+ - Start docker desktop
+ - docker compose up dev-db
+ - (test) docker compose up test-db
+ - Run bootRun to start app
+
 ## Project
 
  - Using Gradle 8.7
@@ -48,3 +55,22 @@ Check the build.gradle file to see dependencies required.
 
 We can run the application by using the IDE action "verification" -> "test" as seen in the image 
 above.
+
+## Migrations
+
+First file:
+
+```aidl
+./gradlew generateChangeLog
+```
+
+Drop the DB:
+
+```aidl
+ ./gradlew dropall
+```
+
+Update the DB with migration file
+```aidl
+ ./gradlew update
+```

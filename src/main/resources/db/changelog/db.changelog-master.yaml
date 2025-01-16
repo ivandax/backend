@@ -1,0 +1,365 @@
+databaseChangeLog:
+- changeSet:
+    id: 1737048689519-1
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: permissions_pkey
+            name: permission_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: permission_name
+            type: VARCHAR(255)
+        tableName: permissions
+- changeSet:
+    id: 1737048689519-2
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: roles_pkey
+            name: role_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: role_name
+            type: VARCHAR(255)
+        tableName: roles
+- changeSet:
+    id: 1737048689519-3
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: is_verified
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: organization
+            type: INTEGER
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: users_pkey
+            name: user_id
+            startWith: 2
+            type: INTEGER
+        - column:
+            name: user_status
+            type: SMALLINT
+        - column:
+            name: created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: password
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: username
+            type: VARCHAR(255)
+        tableName: users
+- changeSet:
+    id: 1737048689519-4
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: organization_pkey
+            name: organization_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: user_quota
+            type: INTEGER
+        - column:
+            name: created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: organization_name
+            type: VARCHAR(255)
+        tableName: organization
+- changeSet:
+    id: 1737048689519-5
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            name: belongs_to
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: user_verification_token_pkey
+            name: user_verification_token_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: verification_token
+            type: VARCHAR(255)
+        tableName: user_verification_token
+- changeSet:
+    id: 1737048689519-6
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: permission_name
+        constraintName: permissions_permission_name_key
+        tableName: permissions
+- changeSet:
+    id: 1737048689519-7
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: role_name
+        constraintName: roles_role_name_key
+        tableName: roles
+- changeSet:
+    id: 1737048689519-8
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: username
+        constraintName: users_username_key
+        tableName: users
+- changeSet:
+    id: 1737048689519-9
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: organization_name
+        constraintName: organization_organization_name_key
+        tableName: organization
+- changeSet:
+    id: 1737048689519-10
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: belongs_to
+        constraintName: user_verification_token_belongs_to_key
+        tableName: user_verification_token
+- changeSet:
+    id: 1737048689519-11
+    author: PC (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: invalid_token_seq
+        startValue: 1
+- changeSet:
+    id: 1737048689519-12
+    author: PC (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: organization_seq
+        startValue: 1
+- changeSet:
+    id: 1737048689519-13
+    author: PC (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: user_verification_token_seq
+        startValue: 1
+- changeSet:
+    id: 1737048689519-14
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: invalid_token_pkey
+            name: token_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: token
+            type: VARCHAR(255)
+        tableName: invalid_token
+- changeSet:
+    id: 1737048689519-15
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: role_permissions_pkey
+            name: permission_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: role_permissions_pkey
+            name: role_id
+            type: INTEGER
+        tableName: role_permissions
+- changeSet:
+    id: 1737048689519-16
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: roles_role_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: user_user_id
+            type: INTEGER
+        tableName: users_roles
+- changeSet:
+    id: 1737048689519-17
+    author: PC (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_user_id
+        baseTableName: users_roles
+        constraintName: fk27iuqlfirca39l6y61p4p4qo2
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: user_id
+        referencedTableName: users
+        validate: true
+- changeSet:
+    id: 1737048689519-18
+    author: PC (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: belongs_to
+        baseTableName: user_verification_token
+        constraintName: fk6kst6njueps5ky9isps5wq9cw
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: user_id
+        referencedTableName: users
+        validate: true
+- changeSet:
+    id: 1737048689519-19
+    author: PC (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: permission_id
+        baseTableName: role_permissions
+        constraintName: fkegdk29eiy7mdtefy5c7eirr6e
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: permission_id
+        referencedTableName: permissions
+        validate: true
+- changeSet:
+    id: 1737048689519-20
+    author: PC (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: role_id
+        baseTableName: role_permissions
+        constraintName: fkn5fotdgk8d1xvo8nav9uv3muc
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: role_id
+        referencedTableName: roles
+        validate: true
+- changeSet:
+    id: 1737048689519-21
+    author: PC (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: organization
+        baseTableName: users
+        constraintName: fkpp4kxcq4gdv5yduadn8j30k1q
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: organization_id
+        referencedTableName: organization
+        validate: true
+- changeSet:
+    id: 1737048689519-22
+    author: PC (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: roles_role_id
+        baseTableName: users_roles
+        constraintName: fktgou1kvdhyryu3fia6uu1fhoi
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: role_id
+        referencedTableName: roles
+        validate: true
+

@@ -2,15 +2,21 @@ package com.backend.demo.model;
 
 import java.util.Date;
 import java.util.List;
+
+import com.backend.demo.utils.StringUtils;
 import jakarta.persistence.*;
 
 @Entity
-public class Organization { @Id
-@GeneratedValue
-private Integer organizationId;
+public class Organization {
+    @Id
+    @GeneratedValue
+    private Integer organizationId;
 
     @Column(unique = true, nullable = false)
     private String organizationName;
+
+    @Column(unique = true, nullable = false)
+    private String organizationSlug;
 
     @Column(name = "created", columnDefinition = "TIMESTAMP")
     private Date created;
@@ -18,16 +24,19 @@ private Integer organizationId;
     @Column(name = "updated", columnDefinition = "TIMESTAMP")
     private Date updated;
 
-    @OneToMany(mappedBy="organization", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "organization", fetch = FetchType.EAGER)
     private List<User> users;
 
     @Column(nullable = false)
     private Integer userQuota;
 
-    public Organization(){}
+    public Organization() {
+    }
+
     public Organization(String organizationName, Integer userQuota) {
         this.organizationName = organizationName;
         this.userQuota = userQuota;
+        this.organizationSlug = StringUtils.slugify(organizationName);
         setCreated();
         setUpdated();
     }
@@ -80,4 +89,11 @@ private Integer organizationId;
         this.userQuota = userQuota;
     }
 
+    public String getOrganizationSlug() {
+        return organizationSlug;
+    }
+
+    public void setOrganizationSlug(String organizationSlug) {
+        this.organizationSlug = organizationSlug;
+    }
 }

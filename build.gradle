@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.5'
 	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.liquibase.gradle' version '2.2.0'
 }
 
 group = 'com.backend'
@@ -15,6 +16,19 @@ repositories {
 	mavenCentral()
 }
 
+liquibase {
+	activities {
+		main {
+			changelogFile 'src/main/resources/db/changelog/db.changelog-master.yaml'
+			url 'jdbc:postgresql://localhost:5434/backend?schema=public'
+			username 'backend'
+			password 'test1234'
+			driver 'org.postgresql.Driver'
+		}
+	}
+	runList = 'main'
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -22,10 +36,14 @@ dependencies {
 	implementation 'com.auth0:java-jwt:4.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.liquibase:liquibase-core:4.11.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	runtimeOnly 'org.postgresql:postgresql'
+	liquibaseRuntime 'org.liquibase:liquibase-core'
+	liquibaseRuntime 'org.postgresql:postgresql'
+	liquibaseRuntime 'info.picocli:picocli:4.7.4'
 }
 
 tasks.named('test') {
