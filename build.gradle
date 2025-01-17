@@ -19,11 +19,6 @@ repositories {
 liquibase {
 	activities {
 		main {
-			changelogFile 'src/main/resources/db/changelog/db.changelog-master.yaml'
-			url 'jdbc:postgresql://localhost:5434/backend?schema=public'
-			username 'backend'
-			password 'test1234'
-			driver 'org.postgresql.Driver'
 		}
 	}
 	runList = 'main'
@@ -36,7 +31,8 @@ dependencies {
 	implementation 'com.auth0:java-jwt:4.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.liquibase:liquibase-core:4.11.0'
+	implementation 'org.liquibase:liquibase-core:4.23.0'
+	implementation 'org.liquibase.ext:liquibase-hibernate6:4.23.2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

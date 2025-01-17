@@ -1,91 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1737048689519-1
-    author: PC (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            autoIncrement: true
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: permissions_pkey
-            name: permission_id
-            type: INTEGER
-        - column:
-            constraints:
-              nullable: false
-            name: permission_name
-            type: VARCHAR(255)
-        tableName: permissions
-- changeSet:
-    id: 1737048689519-2
-    author: PC (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            autoIncrement: true
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: roles_pkey
-            name: role_id
-            type: INTEGER
-        - column:
-            constraints:
-              nullable: false
-            name: role_name
-            type: VARCHAR(255)
-        tableName: roles
-- changeSet:
-    id: 1737048689519-3
-    author: PC (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: is_verified
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: organization
-            type: INTEGER
-        - column:
-            autoIncrement: true
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: users_pkey
-            name: user_id
-            startWith: 2
-            type: INTEGER
-        - column:
-            name: user_status
-            type: SMALLINT
-        - column:
-            name: created
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: updated
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: password
-            type: VARCHAR(255)
-        - column:
-            constraints:
-              nullable: false
-            name: username
-            type: VARCHAR(255)
-        tableName: users
-- changeSet:
-    id: 1737048689519-4
+    id: 1737102907828-1
     author: PC (generated)
     changes:
     - createTable:
@@ -115,7 +30,47 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: organization
 - changeSet:
-    id: 1737048689519-5
+    id: 1737102907828-2
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: permissions_pkey
+            name: permission_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: permission_name
+            type: VARCHAR(255)
+        tableName: permissions
+- changeSet:
+    id: 1737102907828-3
+    author: PC (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: roles_pkey
+            name: role_id
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: role_name
+            type: VARCHAR(255)
+        tableName: roles
+- changeSet:
+    id: 1737102907828-4
     author: PC (generated)
     changes:
     - createTable:
@@ -137,31 +92,51 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: user_verification_token
 - changeSet:
-    id: 1737048689519-6
+    id: 1737102907828-5
     author: PC (generated)
     changes:
-    - addUniqueConstraint:
-        columnNames: permission_name
-        constraintName: permissions_permission_name_key
-        tableName: permissions
-- changeSet:
-    id: 1737048689519-7
-    author: PC (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: role_name
-        constraintName: roles_role_name_key
-        tableName: roles
-- changeSet:
-    id: 1737048689519-8
-    author: PC (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: username
-        constraintName: users_username_key
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: is_verified
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: organization
+            type: INTEGER
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: users_pkey
+            name: user_id
+            type: INTEGER
+        - column:
+            name: user_status
+            type: SMALLINT
+        - column:
+            name: created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: password
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: username
+            type: VARCHAR(255)
         tableName: users
 - changeSet:
-    id: 1737048689519-9
+    id: 1737102907828-6
     author: PC (generated)
     changes:
     - addUniqueConstraint:
@@ -169,7 +144,23 @@ databaseChangeLog:
         constraintName: organization_organization_name_key
         tableName: organization
 - changeSet:
-    id: 1737048689519-10
+    id: 1737102907828-7
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: permission_name
+        constraintName: permissions_permission_name_key
+        tableName: permissions
+- changeSet:
+    id: 1737102907828-8
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: role_name
+        constraintName: roles_role_name_key
+        tableName: roles
+- changeSet:
+    id: 1737102907828-9
     author: PC (generated)
     changes:
     - addUniqueConstraint:
@@ -177,7 +168,15 @@ databaseChangeLog:
         constraintName: user_verification_token_belongs_to_key
         tableName: user_verification_token
 - changeSet:
-    id: 1737048689519-11
+    id: 1737102907828-10
+    author: PC (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: username
+        constraintName: users_username_key
+        tableName: users
+- changeSet:
+    id: 1737102907828-11
     author: PC (generated)
     changes:
     - createSequence:
@@ -190,7 +189,7 @@ databaseChangeLog:
         sequenceName: invalid_token_seq
         startValue: 1
 - changeSet:
-    id: 1737048689519-12
+    id: 1737102907828-12
     author: PC (generated)
     changes:
     - createSequence:
@@ -203,7 +202,7 @@ databaseChangeLog:
         sequenceName: organization_seq
         startValue: 1
 - changeSet:
-    id: 1737048689519-13
+    id: 1737102907828-13
     author: PC (generated)
     changes:
     - createSequence:
@@ -216,7 +215,7 @@ databaseChangeLog:
         sequenceName: user_verification_token_seq
         startValue: 1
 - changeSet:
-    id: 1737048689519-14
+    id: 1737102907828-14
     author: PC (generated)
     changes:
     - createTable:
@@ -235,7 +234,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: invalid_token
 - changeSet:
-    id: 1737048689519-15
+    id: 1737102907828-15
     author: PC (generated)
     changes:
     - createTable:
@@ -256,7 +255,7 @@ databaseChangeLog:
             type: INTEGER
         tableName: role_permissions
 - changeSet:
-    id: 1737048689519-16
+    id: 1737102907828-16
     author: PC (generated)
     changes:
     - createTable:
@@ -273,7 +272,7 @@ databaseChangeLog:
             type: INTEGER
         tableName: users_roles
 - changeSet:
-    id: 1737048689519-17
+    id: 1737102907828-17
     author: PC (generated)
     changes:
     - addForeignKeyConstraint:
@@ -288,7 +287,7 @@ databaseChangeLog:
         referencedTableName: users
         validate: true
 - changeSet:
-    id: 1737048689519-18
+    id: 1737102907828-18
     author: PC (generated)
     changes:
     - addForeignKeyConstraint:
@@ -303,7 +302,7 @@ databaseChangeLog:
         referencedTableName: users
         validate: true
 - changeSet:
-    id: 1737048689519-19
+    id: 1737102907828-19
     author: PC (generated)
     changes:
     - addForeignKeyConstraint:
@@ -318,7 +317,7 @@ databaseChangeLog:
         referencedTableName: permissions
         validate: true
 - changeSet:
-    id: 1737048689519-20
+    id: 1737102907828-20
     author: PC (generated)
     changes:
     - addForeignKeyConstraint:
@@ -333,7 +332,7 @@ databaseChangeLog:
         referencedTableName: roles
         validate: true
 - changeSet:
-    id: 1737048689519-21
+    id: 1737102907828-21
     author: PC (generated)
     changes:
     - addForeignKeyConstraint:
@@ -348,7 +347,7 @@ databaseChangeLog:
         referencedTableName: organization
         validate: true
 - changeSet:
-    id: 1737048689519-22
+    id: 1737102907828-22
     author: PC (generated)
     changes:
     - addForeignKeyConstraint:

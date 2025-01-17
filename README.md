@@ -9,6 +9,13 @@ Project to setup a backend service with Gradle, Springboot and Postgres.
  - (test) docker compose up test-db
  - Run bootRun to start app
 
+## Make a clean build
+
+Will run the tests and then build
+
+```aidl
+./gradlew clean build
+```
 ## Project
 
  - Using Gradle 8.7
@@ -73,4 +80,9 @@ Drop the DB:
 Update the DB with migration file
 ```aidl
  ./gradlew update
+```
+
+New migration file
+```aidl
+ ./gradlew diffChangeLog -Dliquibase.changeLogFile=src/main/resources/db/changelog/db.changelog-new.yaml
 ```
