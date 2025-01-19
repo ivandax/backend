@@ -82,14 +82,19 @@ Update the DB with migration file
  ./gradlew update
 ```
 
-New migration file
-```aidl
- ./gradlew diffChangeLog
-```
-
 Also, we can do this with liquibase CLI (once installed) instead of gradlew commands:
 
 New change log file (master)
 ```aidl
 liquibase generateChangeLog
 ```
+
+### TODO
+
+Couldn't use the hibernate liquibase properties to check the models and obtain a change log 
+based on the changes of the schema.
+
+reference-url=hibernate:ejb3:com.backend.demo.model
+reference-driver=liquibase.ext.hibernate.database.connection.HibernateDriver
+
+We still rely on checking the actual DB to make the diff changelog.
