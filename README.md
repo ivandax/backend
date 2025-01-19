@@ -84,5 +84,12 @@ Update the DB with migration file
 
 New migration file
 ```aidl
- ./gradlew diffChangeLog -Dliquibase.changeLogFile=src/main/resources/db/changelog/db.changelog-new.yaml
+ ./gradlew diffChangeLog
+```
+
+Also, we can do this with liquibase CLI (once installed) instead of gradlew commands:
+
+New change log file (master)
+```aidl
+liquibase generateChangeLog
 ```
