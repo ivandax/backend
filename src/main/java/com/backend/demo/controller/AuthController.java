@@ -37,9 +37,7 @@ public class AuthController {
                                           @RequestBody @Valid SignUpDTO dto) throws MessagingException {
         String username = dto.getEmail();
         String password = dto.getPassword();
-        String organizationName = dto.getOrganizationName();
-        userService.createUserAndOrganization(username, password, organizationName,
-                request);
+        userService.createUserAndOrganization(username, password, request);
     }
 
     @RequestMapping(value = "/verify-token", method = RequestMethod.POST)

@@ -58,7 +58,6 @@ public class UserService {
 
     public void createUserAndOrganization(String username,
                                           String password,
-                                          String organizationName,
                                           HttpServletRequest request)
             throws MessagingException {
         Role adminRole = roleRepository.findByRoleName("ADMIN");
@@ -69,16 +68,7 @@ public class UserService {
         if (user.isPresent()) {
             throw new IllegalArgumentException("This username already exists");
         }
-        Optional<Organization> organization =
-                organizationRepository.findByOrganizationName(organizationName);
-        if (organization.isPresent()) {
-            throw new IllegalArgumentException("This organization name already exists");
-        }
-        Organization newOrganization = new Organization(organizationName, 10);
-        organizationRepository.save(newOrganization);
-
         User newUser = new User(username, password);
-        newUser.setOrganization(newOrganization);
         newUser.setRoles(List.of(adminRole));
         userRepository.save(newUser);
 

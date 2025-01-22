@@ -13,17 +13,12 @@ public class SignUpDTO {
     @NotEmpty
     private String password;
 
-    @NotNull
-    @NotEmpty
-    private String organizationName;
-
     public SignUpDTO() {
     }
 
-    public SignUpDTO(String email, String password, String organizationName) {
+    public SignUpDTO(String email, String password) {
         this.email = email;
         this.password = password;
-        this.organizationName = organizationName;
     }
 
     public String getEmail() {
@@ -40,13 +35,5 @@ public class SignUpDTO {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getOrganizationName() {
-        return organizationName;
-    }
-
-    public void setOrganizationName(String organizationName) {
-        this.organizationName = organizationName;
     }
 }
