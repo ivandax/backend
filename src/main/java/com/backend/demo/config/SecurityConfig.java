@@ -84,6 +84,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/sign-up").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/verify-token").permitAll()
+                        .requestMatchers("/api/todolists/create").hasAuthority("create:todolist")
                         .requestMatchers("/api/users").hasAuthority("read:users")
                         .anyRequest()
                         .authenticated()

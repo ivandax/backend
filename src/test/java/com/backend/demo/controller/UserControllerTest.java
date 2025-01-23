@@ -79,21 +79,16 @@ public class UserControllerTest {
         admin.setPermissions(new HashSet<>(List.of(permissionReadUsers)));
         roleRepository.saveAll(List.of(dev, admin));
 
-        Organization org = new Organization("Main", 10);
-        organizationRepository.save(org);
-
         User adminUser = new User();
         adminUser.addRole(admin);
         adminUser.setUsername("admin@mail.com");
         adminUser.setPassword("testPassword");
-        adminUser.setOrganization(org);
         adminUser.setVerified(true);
         userRepository.save(adminUser);
 
         User noRoleUser = new User();
         noRoleUser.setUsername("no_permissions@mail.com");
         noRoleUser.setPassword("testPassword");
-        noRoleUser.setOrganization(org);
         noRoleUser.setVerified(true);
         userRepository.save(noRoleUser);
     }

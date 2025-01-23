@@ -14,6 +14,10 @@ public class Todolist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    private String title;
+
+    private String description;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
@@ -36,7 +40,10 @@ public class Todolist {
     @Column(name = "updated", columnDefinition = "TIMESTAMP")
     private Date updated;
 
-    public void Todolist() {
+    public void Todolist() {}
+
+    public Todolist(User createdBy) {
+        this.createdBy = createdBy;
         this.created = new Date();
         this.updated = new Date();
     }

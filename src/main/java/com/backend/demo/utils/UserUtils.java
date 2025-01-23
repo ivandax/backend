@@ -11,7 +11,6 @@ public class UserUtils {
         return new UserResponseDTO(
                 user.getUserId(),
                 user.getUsername(),
-                user.getOrganization().getOrganizationName(),
                 user.getRoles().stream().map((Role::getRoleName)).collect(Collectors.toList()),
                 user.isVerified(),
                 user.isActive());

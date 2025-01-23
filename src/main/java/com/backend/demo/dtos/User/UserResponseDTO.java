@@ -5,21 +5,19 @@ import java.util.List;
 public class UserResponseDTO {
     private Integer userId;
     private String username;
-
-    private String organizationName;
     private List<String> roles;
 
     private boolean isActive;
 
     private boolean isVerified;
 
-    public UserResponseDTO(){}
+    public UserResponseDTO() {
+    }
 
-    public UserResponseDTO(Integer userId, String username, String organizationName,
+    public UserResponseDTO(Integer userId, String username,
                            List<String> roles, boolean isVerified, boolean isActive) {
         this.userId = userId;
         this.username = username;
-        this.organizationName = organizationName;
         this.roles = roles;
         this.isActive = isActive;
         this.isVerified = isVerified;
@@ -47,14 +45,6 @@ public class UserResponseDTO {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
-    }
-
-    public String getOrganizationName() {
-        return organizationName;
-    }
-
-    public void setOrganizationName(String organizationName) {
-        this.organizationName = organizationName;
     }
 
     public boolean isActive() {
