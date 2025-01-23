@@ -5,7 +5,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
-import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.User;
 import com.backend.demo.model.UserVerificationToken;

@@ -1,6 +1,5 @@
 package com.backend.demo.controller;
 
-import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.UserVerificationToken;
 import com.backend.demo.repository.*;
