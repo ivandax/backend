@@ -72,14 +72,10 @@ public class AuthControllerTest {
         Role admin = new Role("ADMIN");
         roleRepository.saveAll(List.of(dev, admin));
 
-        Organization org = new Organization("Main", 10);
-        organizationRepository.save(org);
-
         User devUser = new User();
         devUser.addRole(dev);
         devUser.setUsername("dev@mail.com");
         devUser.setPassword("testPassword");
-        devUser.setOrganization(org);
         userRepository.save(devUser);
     }
 
@@ -155,27 +151,6 @@ public class AuthControllerTest {
                 .andReturn();
 
         assertTrue(mvcResult.getResponse().getContentAsString().contains("This username already " +
-                "exists"));
-    }
-
-    @Test
-    @DisplayName("Failure: Organization already exists")
-    public void signUpFailureOrganizationAlreadyExists() throws Exception {
-
-        record SignUpRequest(String email, String password, String organizationName) {
-        }
-
-        SignUpRequest request = new SignUpRequest("new@mail.com", "test1234", "Main");
-
-        String payload = objectMapper.writeValueAsString(request);
-
-        MvcResult mvcResult = mockMvc.perform(post("/api/auth/sign-up")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
-                .andExpect(status().isBadRequest())
-                .andReturn();
-
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("This organization name already " +
                 "exists"));
     }
 
