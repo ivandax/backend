@@ -6,7 +6,6 @@ import com.backend.demo.model.Todolist;
 import com.backend.demo.model.Todo;
 import com.backend.demo.model.User;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class TodolistUtils {

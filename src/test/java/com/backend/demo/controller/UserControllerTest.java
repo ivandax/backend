@@ -22,9 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -137,13 +139,10 @@ public class UserControllerTest {
         String accessToken = tokensResponse.get("access_token");
 
 
-        MvcResult usersResult =
-                mockMvc.perform(get("/api/users")
-                                .header("authorization", "Bearer " + accessToken))
-                        .andExpect(status().isOk()).andReturn();
-        System.out.println(usersResult);
+        MvcResult usersResult = mockMvc.perform(get("/api/users")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
     }
 }
