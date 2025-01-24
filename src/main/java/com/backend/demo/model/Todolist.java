@@ -40,7 +40,7 @@ public class Todolist {
     @Column(name = "updated", columnDefinition = "TIMESTAMP")
     private Date updated;
 
-    public void Todolist() {}
+    public Todolist() {}
 
     public Todolist(User createdBy) {
         this.createdBy = createdBy;

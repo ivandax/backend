@@ -3,6 +3,7 @@ package com.backend.demo.controller;
 import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodolistDTO;
+import com.backend.demo.model.User;
 import com.backend.demo.service.TodolistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -20,18 +21,21 @@ public class TodolistController {
     @ResponseStatus(HttpStatus.CREATED)
     public void createTodolist(
             @AuthenticationPrincipal CustomUserDetails userPrincipal) {
-        System.out.println("machjie" + " " + userPrincipal);
         todolistService.createTodolist(userPrincipal.getUser());
     }
 
     @RequestMapping(value = "", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public ResourceResponseDTO<TodolistDTO> listAllUsers(
+    public ResourceResponseDTO<TodolistDTO> getTodolistForUser(
+            @AuthenticationPrincipal CustomUserDetails userPrincipal,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "perPage", required = false) Integer perPage,
             @RequestParam(value = "sortBy", required = false) String sortBy,
             @RequestParam(value = "sortDirection", required = false) Sort.Direction sortDirection) {
-        return todolistService.findAll(page, perPage, sortBy, sortDirection);
+
+        User user = userPrincipal.getUser();
+
+        return todolistService.findAllForUser(user, page, perPage, sortBy, sortDirection);
     }
 
 }

@@ -30,12 +30,12 @@ public class TodolistService {
         todolistRepository.save(newTodoList);
     }
 
-    public ResourceResponseDTO<TodolistDTO> findAll(Integer page, Integer perPage,
-                                                    String sortBy,
-                                                    Sort.Direction sortDirection) {
+    public ResourceResponseDTO<TodolistDTO> findAllForUser(User user, Integer page, Integer perPage,
+                                                           String sortBy,
+                                                           Sort.Direction sortDirection) {
         Pageable paginationConfig = PaginationUtils.getPaginationConfig(page, perPage, sortBy,
                 sortDirection);
-        Page<Todolist> todolists = todolistRepository.findAll(paginationConfig);
+        Page<Todolist> todolists = todolistRepository.findByCreatedByOrSharedWith(user, paginationConfig);
         return new ResourceResponseDTO<>(
                 todolists.stream().map(TodolistUtils::toDTO).collect(Collectors.toList()),
                 todolists.getTotalPages(),
