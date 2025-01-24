@@ -17,7 +17,7 @@ public class TodolistController {
     @Autowired
     private TodolistService todolistService;
 
-    @PostMapping("/create")
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     public void createTodolist(
             @AuthenticationPrincipal CustomUserDetails userPrincipal) {

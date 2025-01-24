@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-public class TodolistController {
+public class TodolistControllerTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -68,20 +68,24 @@ public class TodolistController {
 
     @BeforeEach
     void setup() {
+        todolistRepository.deleteAll();
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
         permissionRepository.deleteAll();
         organizationRepository.deleteAll();
-        todolistRepository.deleteAll();
 
         Permission permissionReadUsers = new Permission("read:users");
-        permissionRepository.saveAll(List.of(permissionReadUsers));
+        Permission permissionCreateTodolist = new Permission("create:todolist");
+        Permission permissionReadTodolist = new Permission("read:todolist");
+        permissionRepository.saveAll(List.of(permissionReadUsers, permissionReadTodolist,
+                permissionCreateTodolist));
 
         Role dev = new Role("DEV");
         Role admin = new Role("ADMIN");
-        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers)));
+        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers, permissionCreateTodolist,
+                permissionReadTodolist)));
         roleRepository.saveAll(List.of(dev, admin));
 
         User adminUser = new User();
@@ -101,7 +105,7 @@ public class TodolistController {
     @Test
     @DisplayName("Failure: Create todolists without auth")
     public void createTodolistsFailureNoAuth() throws Exception {
-        mockMvc.perform(post("/api/todolists")).andExpect(status().isForbidden()).andReturn();
+        mockMvc.perform(post("/api/todolists/create")).andExpect(status().isForbidden()).andReturn();
     }
 
     @Test
@@ -120,14 +124,56 @@ public class TodolistController {
                 objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
         String accessToken = tokensResponse.get("access_token");
 
-        mockMvc.perform(post("/api/todolists")
+        mockMvc.perform(post("/api/todolists/create")
                         .header("authorization", "Bearer " + accessToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Success: Create todolist")
+    public void createTodolistSuccess() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(post("/api/todolists/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isCreated());
     }
 
     @Test
     @DisplayName("Failure: Get todolists without auth")
     public void getUsersFailureNoAuth() throws Exception {
         mockMvc.perform(get("/api/todolists")).andExpect(status().isForbidden()).andReturn();
+    }
+
+    @Test
+    @DisplayName("Failure: Get todolists without permissions")
+    public void getUsersFailureNoPermissions() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "no_permissions@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+        mockMvc.perform(get("/api/todolists").header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isForbidden()).andReturn();
     }
 }

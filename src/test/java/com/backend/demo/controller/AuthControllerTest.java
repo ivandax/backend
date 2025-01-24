@@ -215,7 +215,7 @@ public class AuthControllerTest {
         String verificationTokenPayload = objectMapper.writeValueAsString(verificationTokenRequest);
 
         mockMvc.perform(post("/api/auth/verify-token")
-                        .contentType(MediaType.APPLICATION_JSON)
+                            .contentType(MediaType.APPLICATION_JSON)
                         .content(verificationTokenPayload))
                 .andExpect(status().isOk())
                 .andReturn();
