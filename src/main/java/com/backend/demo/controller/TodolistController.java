@@ -53,8 +53,9 @@ public class TodolistController {
     @ResponseStatus(HttpStatus.CREATED)
     public void addTodo(
             @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserDetails userPrincipal,
             @RequestBody @Valid TodoRequestDTO dto) throws BadRequestException {
-        todolistService.addTodo(id, dto);
+        todolistService.addTodo(id, dto, userPrincipal);
     }
 
 }

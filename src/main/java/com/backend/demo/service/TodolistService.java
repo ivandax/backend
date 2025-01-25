@@ -48,7 +48,8 @@ public class TodolistService {
                                                            Sort.Direction sortDirection) {
         Pageable paginationConfig = PaginationUtils.getPaginationConfig(page, perPage, sortBy,
                 sortDirection);
-        Page<Todolist> todolists = todolistRepository.findByCreatedByOrSharedWith(user, paginationConfig);
+        Page<Todolist> todolists = todolistRepository.findByCreatedByOrSharedWith(user,
+                paginationConfig);
         return new ResourceResponseDTO<>(
                 todolists.stream().map(TodolistUtils::toDTO).collect(Collectors.toList()),
                 todolists.getTotalPages(),
@@ -57,17 +58,12 @@ public class TodolistService {
         );
     }
 
-    public void updateTodolist(Integer id, TodolistUpdateRequestDTO dto, CustomUserDetails userDetails) throws BadRequestException {
+    public void updateTodolist(Integer id, TodolistUpdateRequestDTO dto,
+                               CustomUserDetails userDetails) throws BadRequestException {
         Todolist todolist = todolistRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Todolist not found"));
 
-        boolean isOwner = Objects.equals(todolist.getCreatedBy().getUserId(),
-                userDetails.getUser().getUserId());
-
-        boolean isSharedWith = todolist.getSharedWith().stream()
-                .anyMatch(user -> Objects.equals(user.getUserId(), userDetails.getUser().getUserId()));
-
-        boolean canEdit = isOwner || isSharedWith;
+        boolean canEdit = checkCanEdit(todolist, userDetails);
 
         if (!canEdit) {
             throw new BadRequestException("Error of ownership. Does not belong to this todo list");
@@ -79,10 +75,27 @@ public class TodolistService {
         todolistRepository.save(todolist);
     }
 
-    public void addTodo(Integer id, TodoRequestDTO dto) throws BadRequestException {
+    public void addTodo(Integer id, TodoRequestDTO dto, CustomUserDetails userDetails) throws BadRequestException {
         Todolist todolist = todolistRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Todolist not found"));
+        boolean canEdit = checkCanEdit(todolist, userDetails);
+
+        if (!canEdit) {
+            throw new BadRequestException("Error of ownership. Does not belong to this todo list");
+        }
+
         Todo todo = new Todo(dto.getDescription(), todolist);
         todoRepository.save(todo);
+    }
+
+    private boolean checkCanEdit(Todolist todolist, CustomUserDetails userDetails) {
+        boolean isOwner = Objects.equals(todolist.getCreatedBy().getUserId(),
+                userDetails.getUser().getUserId());
+
+        boolean isSharedWith = todolist.getSharedWith().stream()
+                .anyMatch(user -> Objects.equals(user.getUserId(),
+                        userDetails.getUser().getUserId()));
+
+        return isOwner || isSharedWith;
     }
 }
