@@ -3,8 +3,10 @@ package com.backend.demo.controller;
 import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodolistDTO;
+import com.backend.demo.dtos.TodolistRequestDTO;
 import com.backend.demo.model.User;
 import com.backend.demo.service.TodolistService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -20,8 +22,9 @@ public class TodolistController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     public void createTodolist(
-            @AuthenticationPrincipal CustomUserDetails userPrincipal) {
-        todolistService.createTodolist(userPrincipal.getUser());
+            @AuthenticationPrincipal CustomUserDetails userPrincipal,
+            @RequestBody @Valid TodolistRequestDTO dto) {
+        todolistService.createTodolist(userPrincipal.getUser(), dto);
     }
 
     @RequestMapping(value = "", method = RequestMethod.GET)

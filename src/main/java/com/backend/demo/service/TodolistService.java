@@ -3,6 +3,8 @@ package com.backend.demo.service;
 import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodolistDTO;
+import com.backend.demo.dtos.TodolistRequestDTO;
+import com.backend.demo.model.Todo;
 import com.backend.demo.model.Todolist;
 import com.backend.demo.model.User;
 import com.backend.demo.repository.*;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,8 +28,13 @@ public class TodolistService {
     @Autowired
     private ConfigProperties configProperties;
 
-    public void createTodolist(User user) {
+    public void createTodolist(User user, TodolistRequestDTO todolistRequestDTO) {
         Todolist newTodoList = new Todolist(user);
+        List<Todo> todos = todolistRequestDTO.getTodos().stream()
+                .map(todoDTO -> new Todo(todoDTO.getDescription())).toList();
+        newTodoList.setTodos(todos);
+        newTodoList.setTitle(todolistRequestDTO.getTitle());
+        newTodoList.setDescription(todolistRequestDTO.getDescription());
         todolistRepository.save(newTodoList);
     }
 
