@@ -455,10 +455,10 @@ public class TodolistControllerTest {
                 objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
         String accessToken = tokensResponse.get("access_token");
 
-        record CreateTodoInvalidBody(String description) {
+        record CreateTodoBody(String description) {
         }
 
-        CreateTodoInvalidBody request = new CreateTodoInvalidBody("test");
+        CreateTodoBody request = new CreateTodoBody("test");
         String payload = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/api/todolists/" + otherTodolist.getId() + "/add-todo")
@@ -502,5 +502,44 @@ public class TodolistControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("Failure: Update todo by ownership")
+    public void updateTodoFailureByOwnership() throws Exception {
+        User otherUser =
+                userRepository.findByUsername("no_permissions@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
+
+        Todolist otherTodolist = new Todolist(otherUser);
+        Todo otherTodo = new Todo("test", otherTodolist);
+        List<Todo> todos = List.of(otherTodo);
+        otherTodolist.setTodos(todos);
+        todolistRepository.save(otherTodolist);
+
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        record UpdateTodoBody(String description, boolean isCompleted) {
+        }
+
+        UpdateTodoBody request = new UpdateTodoBody("test2", true);
+        String payload = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(patch("/api/todolists/" + otherTodolist.getId() + "/todos/" + otherTodo.getId())
+                        .header("authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Error of ownership. " +
+                        "Does not belong to this todo list")));
     }
 }
