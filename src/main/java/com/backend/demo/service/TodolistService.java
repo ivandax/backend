@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,6 +86,22 @@ public class TodolistService {
         }
 
         Todo todo = new Todo(dto.getDescription(), todolist);
+        todoRepository.save(todo);
+    }
+
+    public void updateTodo(Integer id, Integer todoId, TodoRequestDTO dto, CustomUserDetails userDetails) throws BadRequestException {
+        Todolist todolist = todolistRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Todolist not found"));
+        boolean canEdit = checkCanEdit(todolist, userDetails);
+
+        if (!canEdit) {
+            throw new BadRequestException("Error of ownership. Does not belong to this todo list");
+        }
+
+        Todo todo = todoRepository.findById(todoId).orElseThrow(() -> new BadRequestException("Todo not found"));
+        todo.setDescription(dto.getDescription());
+        todo.setCompleted(dto.isCompleted());
+
         todoRepository.save(todo);
     }
 

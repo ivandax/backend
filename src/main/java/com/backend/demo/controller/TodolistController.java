@@ -58,4 +58,14 @@ public class TodolistController {
         todolistService.addTodo(id, dto, userPrincipal);
     }
 
+    @RequestMapping(value = "/{id}/todos/{todoId}", method = RequestMethod.PATCH)
+    @ResponseStatus(HttpStatus.OK)
+    public void updateTodo(
+            @PathVariable Integer id,
+            @PathVariable Integer todoId,
+            @AuthenticationPrincipal CustomUserDetails userPrincipal,
+            @RequestBody @Valid TodoRequestDTO dto) throws BadRequestException {
+        todolistService.updateTodo(id, todoId, dto, userPrincipal);
+    }
+
 }
