@@ -4,9 +4,11 @@ import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodolistDTO;
 import com.backend.demo.dtos.TodolistRequestDTO;
+import com.backend.demo.dtos.TodolistUpdateRequestDTO;
 import com.backend.demo.model.User;
 import com.backend.demo.service.TodolistService;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,15 @@ public class TodolistController {
         User user = userPrincipal.getUser();
 
         return todolistService.findAllForUser(user, page, perPage, sortBy, sortDirection);
+    }
+
+    @RequestMapping(value = "/{id}/update", method = RequestMethod.PATCH)
+    @ResponseStatus(HttpStatus.OK)
+    public void updateTodolist(
+            @PathVariable Integer id,
+            @RequestBody @Valid TodolistUpdateRequestDTO dto) throws BadRequestException {
+        System.out.println("sdvjdslvndsv  ___>" + id);
+        todolistService.updateTodolist(id, dto);
     }
 
 }

@@ -4,12 +4,14 @@ import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodolistDTO;
 import com.backend.demo.dtos.TodolistRequestDTO;
+import com.backend.demo.dtos.TodolistUpdateRequestDTO;
 import com.backend.demo.model.Todo;
 import com.backend.demo.model.Todolist;
 import com.backend.demo.model.User;
 import com.backend.demo.repository.*;
 import com.backend.demo.utils.PaginationUtils;
 import com.backend.demo.utils.TodolistUtils;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,5 +53,15 @@ public class TodolistService {
                 PaginationUtils.getPage(page),
                 PaginationUtils.getPerPage(perPage)
         );
+    }
+
+    public void updateTodolist(Integer id, TodolistUpdateRequestDTO dto) throws BadRequestException {
+        Todolist todolist = todolistRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Todolist not found"));
+
+        todolist.setTitle(dto.getTitle());
+        todolist.setDescription(dto.getDescription());
+
+        todolistRepository.save(todolist);
     }
 }

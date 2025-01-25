@@ -3,6 +3,7 @@ package com.backend.demo.controller;
 import com.backend.demo.dtos.TodoRequestDTO;
 import com.backend.demo.model.Permission;
 import com.backend.demo.model.Role;
+import com.backend.demo.model.Todolist;
 import com.backend.demo.model.User;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
@@ -26,8 +27,7 @@ import java.util.Map;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -246,5 +246,115 @@ public class TodolistControllerTest {
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items", hasSize(0)))
                 .andReturn();
+    }
+
+    @Test
+    @DisplayName("Update a todolist failure: Invalid body")
+    public void updateTodolistFailureInvalidBody() throws Exception {
+        // Step 1: Authenticate as admin user
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Step 2: Create a todo list to update
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
+        }
+
+        TodoRequestDTO todo = new TodoRequestDTO("Initial todo", false);
+        CreateTodolistRequest createRequest =
+                new CreateTodolistRequest("Initial title", "Initial description", List.of(todo));
+
+        String createPayload = objectMapper.writeValueAsString(createRequest);
+
+        MvcResult createResult = mockMvc.perform(post("/api/todolists/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createPayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Todolist createdTodolist =
+                todolistRepository.findByTitle("Initial title").orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        Integer todolistId = (Integer) createdTodolist.getId();
+
+        // Step 3: Prepare the update payload
+        record UpdateTodolistRequestMissingDescription(String title) {
+        }
+
+        TodoRequestDTO updatedTodo = new TodoRequestDTO("Updated todo", true);
+        UpdateTodolistRequestMissingDescription updateRequest =
+                new UpdateTodolistRequestMissingDescription("Updated title");
+
+        String updatePayload = objectMapper.writeValueAsString(updateRequest);
+
+        // Step 4: Perform the update request
+        mockMvc.perform(post("/api/todolists/" + todolistId + "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Success: Update a todolist")
+    public void updateTodolistSuccess() throws Exception {
+        // Step 1: Authenticate as admin user
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Step 2: Create a todo list to update
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
+        }
+
+        TodoRequestDTO todo = new TodoRequestDTO("Initial todo", false);
+        CreateTodolistRequest createRequest =
+                new CreateTodolistRequest("Initial title", "Initial description", List.of(todo));
+
+        String createPayload = objectMapper.writeValueAsString(createRequest);
+
+        MvcResult createResult = mockMvc.perform(post("/api/todolists/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createPayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Todolist createdTodolist =
+                todolistRepository.findByTitle("Initial title").orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        Integer todolistId = (Integer) createdTodolist.getId();
+
+        // Step 3: Prepare the update payload
+        record UpdateTodolistRequest(String title, String description) {
+        }
+
+        TodoRequestDTO updatedTodo = new TodoRequestDTO("Updated todo", true);
+        UpdateTodolistRequest updateRequest =
+                new UpdateTodolistRequest("Updated title", "Updated description");
+
+        String updatePayload = objectMapper.writeValueAsString(updateRequest);
+
+        // Step 4: Perform the update request
+        mockMvc.perform(patch("/api/todolists/" + todolistId + "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
     }
 }

@@ -21,7 +21,9 @@ public class TodolistUtils {
                         .map(TodolistUtils::toTodoDTO)
                         .collect(Collectors.toList()),
                 todolist.getCreated(),
-                todolist.getUpdated()
+                todolist.getUpdated(),
+                todolist.getTitle(),
+                todolist.getDescription()
         );
     }
 

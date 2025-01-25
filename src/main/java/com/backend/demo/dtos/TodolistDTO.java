@@ -11,16 +11,23 @@ public class TodolistDTO {
     private Date created;
     private Date updated;
 
+    private String title;
+
+    private String description;
+
     public TodolistDTO() {
     }
 
-    public TodolistDTO(Integer id, String createdBy, List<String> sharedWith, List<TodoDTO> todos, Date created, Date updated) {
+    public TodolistDTO(Integer id, String createdBy, List<String> sharedWith, List<TodoDTO> todos
+            , Date created, Date updated, String title, String description) {
         this.id = id;
         this.createdBy = createdBy;
         this.sharedWith = sharedWith;
         this.todos = todos;
         this.created = created;
         this.updated = updated;
+        this.title = title;
+        this.description = description;
     }
 
     public Integer getId() {
@@ -69,5 +76,21 @@ public class TodolistDTO {
 
     public void setUpdated(Date updated) {
         this.updated = updated;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
