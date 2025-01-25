@@ -1,5 +1,6 @@
 package com.backend.demo.errors;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -15,6 +16,28 @@ import java.io.StringWriter;
 
 @ControllerAdvice
 public class CustomControllerAdvice {
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(
+            Exception e
+    ) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        // converting the stack trace to String
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
+        String stackTrace = stringWriter.toString();
+
+        return new ResponseEntity<>(
+                new ErrorResponse(
+                        status,
+                        e.getMessage(),
+                        stackTrace
+                ),
+                status
+        );
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(

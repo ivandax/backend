@@ -1,10 +1,7 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.dtos.TodoRequestDTO;
-import com.backend.demo.model.Permission;
-import com.backend.demo.model.Role;
-import com.backend.demo.model.Todolist;
-import com.backend.demo.model.User;
+import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,6 +65,9 @@ public class TodolistControllerTest {
 
     @Autowired
     private TodolistRepository todolistRepository;
+
+    @Autowired
+    private TodoRepository todoRepository;
 
     @BeforeEach
     void setup() {
@@ -307,6 +307,45 @@ public class TodolistControllerTest {
     }
 
     @Test
+    @DisplayName("Failure: cannot update todolist without ownership")
+    public void updateTodolistFailureByOwnership() throws Exception {
+        User otherUser =
+                userRepository.findByUsername("no_permissions@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
+
+        Todolist otherTodolist = new Todolist(otherUser);
+        todolistRepository.save(otherTodolist);
+
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        record UpdateTodolistRequest(String title, String description) {
+        }
+
+        UpdateTodolistRequest updateRequest =
+                new UpdateTodolistRequest("Updated title", "Updated description");
+
+        String updatePayload = objectMapper.writeValueAsString(updateRequest);
+
+        MvcResult mvcResult = mockMvc.perform(patch("/api/todolists/" + otherTodolist.getId() +
+                        "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest()).andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Error of ownership. " +
+                "Does not belong to this todo list"));
+    }
+
+    @Test
     @DisplayName("Success: Update a todolist")
     public void updateTodolistSuccess() throws Exception {
         // Step 1: Authenticate as admin user
@@ -347,7 +386,6 @@ public class TodolistControllerTest {
         record UpdateTodolistRequest(String title, String description) {
         }
 
-        TodoRequestDTO updatedTodo = new TodoRequestDTO("Updated todo", true);
         UpdateTodolistRequest updateRequest =
                 new UpdateTodolistRequest("Updated title", "Updated description");
 
