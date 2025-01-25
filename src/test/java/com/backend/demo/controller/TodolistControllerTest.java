@@ -455,10 +455,10 @@ public class TodolistControllerTest {
                 objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
         String accessToken = tokensResponse.get("access_token");
 
-        record CreateTodoBody(String description) {
+        record CreateTodoInvalidBody(String description) {
         }
 
-        CreateTodoBody request = new CreateTodoBody("test");
+        CreateTodoInvalidBody request = new CreateTodoInvalidBody("test");
         String payload = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/api/todolists/" + otherTodolist.getId() + "/add-todo")
@@ -491,10 +491,10 @@ public class TodolistControllerTest {
         Todolist todolist = new Todolist(user);
         todolistRepository.save(todolist);
 
-        record CreateTodoInvalidBody(String description) {
+        record CreateTodoBody(String description) {
         }
 
-        CreateTodoInvalidBody request = new CreateTodoInvalidBody("test");
+        CreateTodoBody request = new CreateTodoBody("test");
         String payload = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/api/todolists/" + todolist.getId() + "/add-todo")
@@ -541,5 +541,80 @@ public class TodolistControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Error of ownership. " +
                         "Does not belong to this todo list")));
+    }
+
+    @Test
+    @DisplayName("Failure: Update todo invalid body")
+    public void updateTodoFailureInvalidBody() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        User user =
+                userRepository.findByUsername("admin@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
+
+        Todolist todolist = new Todolist(user);
+        Todo todo = new Todo("test", todolist);
+        List<Todo> todos = List.of(todo);
+        todolist.setTodos(todos);
+        todolistRepository.save(todolist);
+
+        record CreateTodoInvalidBody(String invalidProperty) {
+        }
+
+        CreateTodoInvalidBody request = new CreateTodoInvalidBody("test");
+        String payload = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(patch("/api/todolists/" + todolist.getId() + "/todos/" + todo.getId())
+                        .header("authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Could not validate provided data")));
+    }
+
+    @Test
+    @DisplayName("Success Update todo")
+    public void successUpdateTodo() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        User user =
+                userRepository.findByUsername("admin@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
+
+        Todolist todolist = new Todolist(user);
+        Todo todo = new Todo("test", todolist);
+        List<Todo> todos = List.of(todo);
+        todolist.setTodos(todos);
+        todolistRepository.save(todolist);
+
+        record CreateTodoBody(String description, boolean isComplete) {
+        }
+
+        CreateTodoBody request = new CreateTodoBody("test2", true);
+        String payload = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(patch("/api/todolists/" + todolist.getId() + "/todos/" + todo.getId())
+                        .header("authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
     }
 }
