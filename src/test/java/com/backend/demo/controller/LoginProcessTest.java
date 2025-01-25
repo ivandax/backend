@@ -165,7 +165,7 @@ public class LoginProcessTest {
 
         MvcResult logoutResult = mockMvc.perform(post("/api/auth/logout")
                         .header("authorization", ""))
-                .andExpect(status().isInternalServerError()).andReturn();
+                .andExpect(status().isBadRequest()).andReturn();
 
         assertTrue(logoutResult.getResponse().getContentAsString().contains("Token is missing"));
     }

@@ -87,6 +87,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/todolists/create").hasAuthority("create:todolist")
                         .requestMatchers("/api/todolists/{id}/update").hasAuthority("update:todolist")
                         .requestMatchers("/api/todolists/{id}/add-todo").hasAuthority("update:todolist")
+                        .requestMatchers("/api/todolists/{id}/todos/{todoId}").hasAuthority("update:todolist")
                         .requestMatchers("/api/todolists").hasAuthority("read:todolist")
                         .requestMatchers("/api/users").hasAuthority("read:users")
                         .anyRequest()

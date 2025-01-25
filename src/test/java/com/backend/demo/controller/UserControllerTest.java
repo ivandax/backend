@@ -64,8 +64,15 @@ public class UserControllerTest {
     @Autowired
     private PermissionRepository permissionRepository;
 
+    @Autowired
+    private TodolistRepository todolistRepository;
+
+    @Autowired
+    private TodoRepository todoRepository;
+
     @BeforeEach
     void setup() {
+        todolistRepository.deleteAll();
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
