@@ -82,13 +82,16 @@ public class TodolistControllerTest {
         Permission permissionReadUsers = new Permission("read:users");
         Permission permissionCreateTodolist = new Permission("create:todolist");
         Permission permissionReadTodolist = new Permission("read:todolist");
-        permissionRepository.saveAll(List.of(permissionReadUsers, permissionReadTodolist,
-                permissionCreateTodolist));
+        Permission permissionUpdateTodolist = new Permission("update:todolist");
+        permissionRepository.saveAll(List.of(permissionReadUsers,
+                permissionReadTodolist,
+                permissionCreateTodolist,
+                permissionUpdateTodolist));
 
         Role dev = new Role("DEV");
         Role admin = new Role("ADMIN");
         admin.setPermissions(new HashSet<>(List.of(permissionReadUsers, permissionCreateTodolist,
-                permissionReadTodolist)));
+                permissionReadTodolist, permissionUpdateTodolist)));
         roleRepository.saveAll(List.of(dev, admin));
 
         User adminUser = new User();

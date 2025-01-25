@@ -1,6 +1,7 @@
 package com.backend.demo.service;
 
 import com.backend.demo.config.ConfigProperties;
+import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.*;
 import com.backend.demo.model.Todo;
 import com.backend.demo.model.Todolist;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,9 +57,21 @@ public class TodolistService {
         );
     }
 
-    public void updateTodolist(Integer id, TodolistUpdateRequestDTO dto) throws BadRequestException {
+    public void updateTodolist(Integer id, TodolistUpdateRequestDTO dto, CustomUserDetails userDetails) throws BadRequestException {
         Todolist todolist = todolistRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Todolist not found"));
+
+        boolean isOwner = Objects.equals(todolist.getCreatedBy().getUserId(),
+                userDetails.getUser().getUserId());
+
+        boolean isSharedWith = todolist.getSharedWith().stream()
+                .anyMatch(user -> Objects.equals(user.getUserId(), userDetails.getUser().getUserId()));
+
+        boolean canEdit = isOwner || isSharedWith;
+
+        if (!canEdit) {
+            throw new BadRequestException("Error of ownership. Does not belong to this todo list");
+        }
 
         todolist.setTitle(dto.getTitle());
         todolist.setDescription(dto.getDescription());

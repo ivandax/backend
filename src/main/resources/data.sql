@@ -28,6 +28,9 @@ INSERT INTO permissions (permission_id, permission_name) VALUES (6, 'create:todo
 INSERT INTO permissions (permission_id, permission_name) VALUES (7, 'read:todolist')
     ON CONFLICT (permission_id) DO NOTHING;
 
+INSERT INTO permissions (permission_id, permission_name) VALUES (8, 'update:todolist')
+    ON CONFLICT (permission_id) DO NOTHING;
+
 INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 1)
     ON CONFLICT DO NOTHING;
 
@@ -48,3 +51,6 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 6)
 
 INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 7)
     ON CONFLICT DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 8)
+        ON CONFLICT DO NOTHING;

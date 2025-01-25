@@ -44,9 +44,9 @@ public class TodolistController {
     @ResponseStatus(HttpStatus.OK)
     public void updateTodolist(
             @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserDetails userPrincipal,
             @RequestBody @Valid TodolistUpdateRequestDTO dto) throws BadRequestException {
-        System.out.println("sdvjdslvndsv  ___>" + id);
-        todolistService.updateTodolist(id, dto);
+        todolistService.updateTodolist(id, dto, userPrincipal);
     }
 
     @RequestMapping(value = "/{id}/add-todo", method = RequestMethod.POST)
