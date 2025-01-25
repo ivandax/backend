@@ -1,10 +1,7 @@
 package com.backend.demo.service;
 
 import com.backend.demo.config.ConfigProperties;
-import com.backend.demo.dtos.ResourceResponseDTO;
-import com.backend.demo.dtos.TodolistDTO;
-import com.backend.demo.dtos.TodolistRequestDTO;
-import com.backend.demo.dtos.TodolistUpdateRequestDTO;
+import com.backend.demo.dtos.*;
 import com.backend.demo.model.Todo;
 import com.backend.demo.model.Todolist;
 import com.backend.demo.model.User;
@@ -26,6 +23,9 @@ public class TodolistService {
 
     @Autowired
     private TodolistRepository todolistRepository;
+
+    @Autowired
+    private TodoRepository todoRepository;
 
     @Autowired
     private ConfigProperties configProperties;
@@ -63,5 +63,12 @@ public class TodolistService {
         todolist.setDescription(dto.getDescription());
 
         todolistRepository.save(todolist);
+    }
+
+    public void addTodo(Integer id, TodoRequestDTO dto) throws BadRequestException {
+        Todolist todolist = todolistRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Todolist not found"));
+        Todo todo = new Todo(dto.getDescription(), todolist);
+        todoRepository.save(todo);
     }
 }

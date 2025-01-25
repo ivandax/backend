@@ -1,5 +1,6 @@
 package com.backend.demo.model;
 
+import com.backend.demo.model.enums.TodolistStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
@@ -17,6 +18,10 @@ public class Todolist {
     private String title;
 
     private String description;
+
+    private TodolistStatus status;
+
+    private Boolean isPinned;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -46,6 +51,8 @@ public class Todolist {
         this.createdBy = createdBy;
         this.created = new Date();
         this.updated = new Date();
+        this.status = TodolistStatus.ACTIVE;
+        this.isPinned = false;
     }
 
     public Integer getId() {
@@ -111,5 +118,29 @@ public class Todolist {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public TodolistStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TodolistStatus status) {
+        this.status = status;
+    }
+
+    public Boolean isPinned() {
+        return isPinned;
+    }
+
+    public void setPinned(Boolean pinned) {
+        isPinned = pinned;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public void setUpdated(Date updated) {
+        this.updated = updated;
     }
 }

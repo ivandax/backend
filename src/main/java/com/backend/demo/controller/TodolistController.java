@@ -1,10 +1,7 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.config.CustomUserDetails;
-import com.backend.demo.dtos.ResourceResponseDTO;
-import com.backend.demo.dtos.TodolistDTO;
-import com.backend.demo.dtos.TodolistRequestDTO;
-import com.backend.demo.dtos.TodolistUpdateRequestDTO;
+import com.backend.demo.dtos.*;
 import com.backend.demo.model.User;
 import com.backend.demo.service.TodolistService;
 import jakarta.validation.Valid;
@@ -50,6 +47,14 @@ public class TodolistController {
             @RequestBody @Valid TodolistUpdateRequestDTO dto) throws BadRequestException {
         System.out.println("sdvjdslvndsv  ___>" + id);
         todolistService.updateTodolist(id, dto);
+    }
+
+    @RequestMapping(value = "/{id}/add-todo", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addTodo(
+            @PathVariable Integer id,
+            @RequestBody @Valid TodoRequestDTO dto) throws BadRequestException {
+        todolistService.addTodo(id, dto);
     }
 
 }
