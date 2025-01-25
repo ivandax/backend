@@ -22,8 +22,9 @@ public class Todo {
     public Todo() {
     }
 
-    public Todo(String description) {
+    public Todo(String description, Todolist todolist) {
         this.description = description;
+        setTodolist(todolist);
     }
 
     public Integer getId() {

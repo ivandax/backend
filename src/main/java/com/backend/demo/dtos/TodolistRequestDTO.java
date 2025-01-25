@@ -9,9 +9,10 @@ public class TodolistRequestDTO {
     private String title;
     @NotNull
     private String description;
-    private List<TodoDTO> todos;
+    @NotNull
+    private List<TodoRequestDTO> todos;
 
-    public TodolistRequestDTO(String title, String description, List<TodoDTO> todos) {
+    public TodolistRequestDTO(String title, String description, List<TodoRequestDTO> todos) {
         this.title = title;
         this.description = description;
         this.todos = todos;
@@ -33,11 +34,11 @@ public class TodolistRequestDTO {
         this.description = description;
     }
 
-    public List<TodoDTO> getTodos() {
+    public List<TodoRequestDTO> getTodos() {
         return todos;
     }
 
-    public void setTodos(List<TodoDTO> todos) {
+    public void setTodos(List<TodoRequestDTO> todos) {
         this.todos = todos;
     }
 }

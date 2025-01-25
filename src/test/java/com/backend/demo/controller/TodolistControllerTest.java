@@ -1,5 +1,6 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.dtos.TodoRequestDTO;
 import com.backend.demo.model.Permission;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.User;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -131,6 +133,41 @@ public class TodolistControllerTest {
     }
 
     @Test
+    @DisplayName("Failure: Create todolists with invalid body")
+    public void createTodolistsFailureInvalidBody() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        record CreateTodolistRequestMissingTodos(String title, String description) {
+        }
+
+        CreateTodolistRequestMissingTodos request =
+                new CreateTodolistRequestMissingTodos("test", "some description");
+
+        String payload = objectMapper.writeValueAsString(request);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/todolists/create")
+                        .header("authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest()).andReturn();
+
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Could not validate " +
+                "provided data. Please review data sent"));
+    }
+
+    @Test
     @DisplayName("Success: Create todolist")
     public void createTodolistSuccess() throws Exception {
         MvcResult loginResult = mockMvc.perform(post("/login")
@@ -146,9 +183,19 @@ public class TodolistControllerTest {
                 objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
         String accessToken = tokensResponse.get("access_token");
 
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
+        }
+
+        TodoRequestDTO todo = new TodoRequestDTO("Hello world! This is my todo", false);
+
+        CreateTodolistRequest request =
+                new CreateTodolistRequest("test", "some description", List.of(todo));
+
+        String payload = objectMapper.writeValueAsString(request);
+
         mockMvc.perform(post("/api/todolists/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}")
+                        .content(payload)
                         .header("authorization", "Bearer " + accessToken))
                 .andExpect(status().isCreated());
     }

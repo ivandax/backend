@@ -30,11 +30,12 @@ public class TodolistService {
 
     public void createTodolist(User user, TodolistRequestDTO todolistRequestDTO) {
         Todolist newTodoList = new Todolist(user);
-        List<Todo> todos = todolistRequestDTO.getTodos().stream()
-                .map(todoDTO -> new Todo(todoDTO.getDescription())).toList();
-        newTodoList.setTodos(todos);
         newTodoList.setTitle(todolistRequestDTO.getTitle());
         newTodoList.setDescription(todolistRequestDTO.getDescription());
+        List<Todo> todos = todolistRequestDTO.getTodos().stream()
+                .map(todoRequestDTO -> new Todo(todoRequestDTO.getDescription(), newTodoList)).toList();
+        newTodoList.setTodos(todos);
+
         todolistRepository.save(newTodoList);
     }
 
