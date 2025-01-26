@@ -111,7 +111,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Failure: Get users without read:users permission")
     public void getUsersFailureNoAdminRole() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "no_permissions@mail.com")
@@ -132,7 +132,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Success: Get users")
     public void getUsersSuccess() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")

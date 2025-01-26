@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .addFilterBefore(customAuthorizationFilter(),
                         UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/test").permitAll()
                         .requestMatchers("/api/auth/sign-up").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()

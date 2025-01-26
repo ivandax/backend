@@ -107,7 +107,7 @@ public class LoginProcessTest {
     @Test
     @DisplayName("Login failure: User does not exist")
     public void loginFailureUserAlreadyExists() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(post("/login")
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "noExist@mail.com")
@@ -121,7 +121,7 @@ public class LoginProcessTest {
     @Test
     @DisplayName("Login failure: Badly formatted email")
     public void loginFailureBadlyFormattedEmail() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(post("/login")
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "pizzaPizza")
@@ -135,7 +135,7 @@ public class LoginProcessTest {
     @Test
     @DisplayName("Login success: Login with username and password")
     public void loginSuccess() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(post("/login")
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "dev@mail.com")
@@ -150,7 +150,7 @@ public class LoginProcessTest {
     @Test
     @DisplayName("Logout failure: Missing token")
     public void logoutFailureMissingToken() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "dev@mail.com")
@@ -173,7 +173,7 @@ public class LoginProcessTest {
     @Test
     @DisplayName("Logout success")
     public void logoutSuccess() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "dev@mail.com")

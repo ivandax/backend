@@ -117,7 +117,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Failure: Create todolists without create:todolist permission")
     public void createTodolistsFailureNoPermissions() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "no_permissions@mail.com")
@@ -138,7 +138,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Failure: Create todolists with invalid body")
     public void createTodolistsFailureInvalidBody() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
@@ -173,7 +173,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Success: Create todolist")
     public void createTodolistSuccess() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
@@ -212,7 +212,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Failure: Get todolists without permissions")
     public void getUsersFailureNoPermissions() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "no_permissions@mail.com")
@@ -231,7 +231,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Success: get todolists for user")
     public void getTodolistsForUser() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
@@ -255,7 +255,7 @@ public class TodolistControllerTest {
     @DisplayName("Update a todolist failure: Invalid body")
     public void updateTodolistFailureInvalidBody() throws Exception {
         // Step 1: Authenticate as admin user
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -315,7 +315,7 @@ public class TodolistControllerTest {
         Todolist otherTodolist = new Todolist(otherUser);
         todolistRepository.save(otherTodolist);
 
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -349,7 +349,7 @@ public class TodolistControllerTest {
     @DisplayName("Success: Update a todolist")
     public void updateTodolistSuccess() throws Exception {
         // Step 1: Authenticate as admin user
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -402,7 +402,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Failure: Create todolist with invalid body")
     public void addTodoFailureInvalidBody() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -443,7 +443,7 @@ public class TodolistControllerTest {
         Todolist otherTodolist = new Todolist(otherUser);
         todolistRepository.save(otherTodolist);
 
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -473,7 +473,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Success: Add todo")
     public void addTodoSuccess() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -516,7 +516,7 @@ public class TodolistControllerTest {
         otherTodolist.setTodos(todos);
         todolistRepository.save(otherTodolist);
 
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -546,7 +546,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Failure: Update todo invalid body")
     public void updateTodoFailureInvalidBody() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
@@ -584,7 +584,7 @@ public class TodolistControllerTest {
     @Test
     @DisplayName("Success Update todo")
     public void successUpdateTodo() throws Exception {
-        MvcResult loginResult = mockMvc.perform(post("/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "admin@mail.com")
                         .param("password", "testPassword"))
