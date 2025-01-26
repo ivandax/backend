@@ -1,12 +1,15 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.service.CustomUserDetailsService;
 import com.backend.demo.service.UserService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,6 +29,13 @@ public class UserController {
             @RequestParam(value = "sortBy",required = false) String sortBy,
             @RequestParam(value = "sortDirection", required = false) Sort.Direction sortDirection) {
         return userService.findAll(page, perPage, sortBy, sortDirection);
+    }
+
+    @RequestMapping(value = "/logged-in-user", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public UserResponseDTO getLoggedInUser(
+            @AuthenticationPrincipal CustomUserDetails userPrincipal) throws BadRequestException {
+        return userService.findLoggedInUser(userPrincipal);
     }
 
 }

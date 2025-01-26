@@ -3,6 +3,7 @@ package com.backend.demo.service;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.backend.demo.config.ConfigProperties;
+import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.Role;
@@ -18,6 +19,7 @@ import com.backend.demo.utils.PaginationUtils;
 import com.backend.demo.utils.UserUtils;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -119,5 +121,11 @@ public class UserService {
                 PaginationUtils.getPage(page),
                 PaginationUtils.getPerPage(perPage)
         );
+    }
+
+    public UserResponseDTO findLoggedInUser(CustomUserDetails userPrincipal) throws BadRequestException {
+        Optional<User> maybeUser = userRepository.findByUsername(userPrincipal.getUsername());
+        User user = maybeUser.orElseThrow(() -> new BadRequestException("User not found"));
+        return UserUtils.userToUserResponseDTO(user);
     }
 }

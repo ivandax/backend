@@ -20,13 +20,10 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -81,11 +78,12 @@ public class UserControllerTest {
         organizationRepository.deleteAll();
 
         Permission permissionReadUsers = new Permission("read:users");
-        permissionRepository.saveAll(List.of(permissionReadUsers));
+        Permission permissionReadSelfUser = new Permission("read:self-user");
+        permissionRepository.saveAll(List.of(permissionReadUsers, permissionReadSelfUser));
 
         Role dev = new Role("DEV");
         Role admin = new Role("ADMIN");
-        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers)));
+        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers, permissionReadSelfUser)));
         roleRepository.saveAll(List.of(dev, admin));
 
         User adminUser = new User();
@@ -151,5 +149,59 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
+        assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
+    }
+
+    @Test
+    @DisplayName("Failure: Get self user without auth")
+    public void getSelfUserNoAuth() throws Exception {
+        mockMvc.perform(get("/api/users/logged-in-user"))
+                .andExpect(status().isForbidden()).andReturn();
+    }
+
+    @Test
+    @DisplayName("Failure: Get self user without read:self-user permission")
+    public void getSelfUserNoAdminRole() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "no_permissions@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(get("/api/users/logged-in-user")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Success: Get self")
+    public void getSelfUserSuccess() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+
+        MvcResult userResult = mockMvc.perform(get("/api/users/logged-in-user")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertTrue(userResult.getResponse().getContentAsString().contains("admin@mail.com"));
     }
 }

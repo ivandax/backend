@@ -94,6 +94,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/todolists/{id}/todos/{todoId}").hasAuthority("update:todolist")
                         .requestMatchers("/api/todolists").hasAuthority("read:todolist")
                         .requestMatchers("/api/users").hasAuthority("read:users")
+                        .requestMatchers("/api/users/logged-in-user").hasAuthority("read:self-user")
                         .anyRequest()
                         .authenticated()
                 ).addFilter(customAuthenticationFilter())

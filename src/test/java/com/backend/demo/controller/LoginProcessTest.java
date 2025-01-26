@@ -115,7 +115,7 @@ public class LoginProcessTest {
                 .andExpect(status().isUnauthorized())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("Bad credentials"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Invalid username or password"));
     }
 
     @Test
@@ -129,7 +129,7 @@ public class LoginProcessTest {
                 .andExpect(status().isUnauthorized())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("Bad credentials"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Invalid username or password"));
     }
 
     @Test
