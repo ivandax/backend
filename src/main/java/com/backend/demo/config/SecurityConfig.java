@@ -50,7 +50,9 @@ public class SecurityConfig {
 
     @Bean
     public CustomAuthenticationFilter customAuthenticationFilter() {
-        return new CustomAuthenticationFilter();
+        CustomAuthenticationFilter filter = new CustomAuthenticationFilter();
+        filter.setFilterProcessesUrl("/api/auth/login");
+        return filter;
     }
 
     @Bean
