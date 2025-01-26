@@ -17,7 +17,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -66,16 +65,10 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
-                                              AuthenticationException failed) throws IOException {
+                                              AuthenticationException exception) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", "Authentication failed");
-        errorResponse.put("message", failed.getMessage());
-
-        String jsonResponse = new ObjectMapper().writeValueAsString(errorResponse);
-
-        response.setContentType("application/json");
-        response.getWriter().write(jsonResponse);
-        response.getWriter().flush();
+        response.setContentType(APPLICATION_JSON_VALUE);
+        new ObjectMapper().writeValue(response.getOutputStream(),
+                Map.of("error", "Authentication failed", "message",  "Invalid username or password"));
     }
 }
