@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,6 +77,13 @@ public class AuthControllerTest {
         devUser.setUsername("dev@mail.com");
         devUser.setPassword("testPassword");
         userRepository.save(devUser);
+
+        User adminUser = new User();
+        adminUser.addRole(admin);
+        adminUser.setUsername("admin@mail.com");
+        adminUser.setPassword("testPassword");
+        adminUser.setVerified(true);
+        userRepository.save(adminUser);
     }
 
     @Test
@@ -170,7 +178,7 @@ public class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        assertEquals(2, userRepository.findAll().size());
+        assertEquals(3, userRepository.findAll().size());
     }
 
     @Test
@@ -215,7 +223,7 @@ public class AuthControllerTest {
         String verificationTokenPayload = objectMapper.writeValueAsString(verificationTokenRequest);
 
         mockMvc.perform(post("/api/auth/verify-token")
-                            .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(verificationTokenPayload))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -225,5 +233,53 @@ public class AuthControllerTest {
         assertTrue(reloadedMaybeUser.isPresent() && reloadedMaybeUser.get().isVerified());
 
     }
+
+    @Test
+    @DisplayName("Failure: Renew token with wrong method - GET")
+    public void renewTokenFailureWrongMethod() throws Exception {
+        mockMvc.perform(get("/api/auth/renew-token")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "dev@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("Failure: Renew token without header")
+    public void renewTokenFailureNoHeader() throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/auth/renew-token"))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(result.getResponse().getContentAsString().contains("Token is missing"));
+    }
+
+    @Test
+    @DisplayName("Success: Renew token")
+    public void renewTokenSuccess() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String refreshToken = tokensResponse.get("refresh_token");
+
+        MvcResult result = mockMvc.perform(post("/api/auth/renew-token")
+                        .header("authorization",
+                        "Bearer " + refreshToken))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertTrue(result.getResponse().getContentAsString().contains("access_token"));
+        assertTrue(result.getResponse().getContentAsString().contains("refresh_token"));
+    }
+
 
 }

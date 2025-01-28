@@ -95,12 +95,12 @@ public class LoginProcessTest {
     @Test
     @DisplayName("Login failure: login up with wrong method - GET")
     public void loginFailureByMethod() throws Exception {
-        mockMvc.perform(get("/login")
+        mockMvc.perform(get("/api/auth/login")
                         .contentType(MediaType
                                 .APPLICATION_FORM_URLENCODED_VALUE)
                         .param("username", "dev@mail.com")
                         .param("password", "testPassword"))
-                .andExpect(status().isForbidden())
+                .andExpect(status().isBadRequest())
                 .andReturn();
     }
 

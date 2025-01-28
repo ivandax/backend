@@ -84,7 +84,7 @@ public class AuthController {
             String refreshToken = authorizationHeader.substring("Bearer ".length());
             return userService.getNewTokens(request, response, refreshToken);
         } else {
-            throw new RuntimeException("Token is missing");
+            throw new BadRequestException("Token is missing");
         }
     }
 }
