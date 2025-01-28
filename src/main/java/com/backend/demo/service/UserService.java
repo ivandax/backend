@@ -6,6 +6,7 @@ import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
+import com.backend.demo.model.Permission;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.User;
 import com.backend.demo.model.UserVerificationToken;
@@ -29,7 +30,9 @@ import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -127,5 +130,29 @@ public class UserService {
         Optional<User> maybeUser = userRepository.findByUsername(userPrincipal.getUsername());
         User user = maybeUser.orElseThrow(() -> new BadRequestException("User not found"));
         return UserUtils.userToUserResponseDTO(user);
+    }
+
+    public Map<String, String> getNewTokens(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String refreshToken
+    ) throws IOException {
+        try {
+            Algorithm algorithm =
+                    Algorithm.HMAC256(configProperties.getAuthenticationSecret().getBytes());
+            String requesterUsername = JwtUtils.getUsernameFromJWT(algorithm, refreshToken);
+            User user =
+                    userRepository.findByUsername(requesterUsername).orElseThrow(() -> new IllegalArgumentException("User could not be found"));
+            Collection<String> permissions = user.getRoles().stream()
+                    .flatMap(role -> role.getPermissions()
+                            .stream().map(Permission::getPermissionName))
+                    .collect(Collectors.toSet());
+            CustomUserDetails userDetails = new CustomUserDetails(user, permissions);
+            return JwtUtils.generateNewAccessToken(request, userDetails, algorithm, refreshToken);
+
+        } catch (JWTVerificationException exception) {
+            JwtUtils.catchJWTError(response, exception);
+        }
+        return null;
     }
 }

@@ -74,4 +74,17 @@ public class AuthController {
             throw new BadRequestException("Token is missing");
         }
     }
+
+    @RequestMapping(value = "/renew-token", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    public Map<String, String> refreshTokens(HttpServletRequest request,
+                              HttpServletResponse response) throws IOException {
+        String authorizationHeader = request.getHeader(AUTHORIZATION);
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String refreshToken = authorizationHeader.substring("Bearer ".length());
+            return userService.getNewTokens(request, response, refreshToken);
+        } else {
+            throw new RuntimeException("Token is missing");
+        }
+    }
 }
