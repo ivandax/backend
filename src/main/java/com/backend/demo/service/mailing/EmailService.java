@@ -29,9 +29,9 @@ public class EmailService {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
         helper.setText(htmlContent, true);
+        helper.setFrom("info@culturetxt.com");
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setFrom("ivandax_89@hotmail.com");
         emailSender.send(mimeMessage);
     }
 
