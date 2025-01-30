@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -53,6 +54,9 @@ public class SecurityConfig {
     public CustomAuthenticationFilter customAuthenticationFilter() {
         CustomAuthenticationFilter filter = new CustomAuthenticationFilter();
         filter.setFilterProcessesUrl("/api/auth/login");
+        filter.setRequiresAuthenticationRequestMatcher(
+                new AntPathRequestMatcher("/api/auth/login", "POST")
+        );
         return filter;
     }
 
@@ -90,16 +94,20 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/renew-token").permitAll()
                         .requestMatchers("/api/auth/verify-token").permitAll()
                         .requestMatchers("/api/todolists/create").hasAuthority("create:todolist")
-                        .requestMatchers("/api/todolists/{id}/update").hasAuthority("update:todolist")
-                        .requestMatchers("/api/todolists/{id}/add-todo").hasAuthority("update:todolist")
-                        .requestMatchers("/api/todolists/{id}/todos/{todoId}").hasAuthority("update:todolist")
+                        .requestMatchers("/api/todolists/{id}/update").hasAuthority("update" +
+                                ":todolist")
+                        .requestMatchers("/api/todolists/{id}/add-todo").hasAuthority("update" +
+                                ":todolist")
+                        .requestMatchers("/api/todolists/{id}/todos/{todoId}").hasAuthority(
+                                "update:todolist")
                         .requestMatchers("/api/todolists").hasAuthority("read:todolist")
                         .requestMatchers("/api/users").hasAuthority("read:users")
                         .requestMatchers("/api/users/logged-in-user").hasAuthority("read:self-user")
                         .anyRequest()
                         .authenticated()
                 ).addFilter(customAuthenticationFilter())
-                .cors(Customizer.withDefaults());;
+                .cors(Customizer.withDefaults());
+        ;
 
         return http.build();
     }

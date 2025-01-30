@@ -60,6 +60,9 @@ public class LoginProcessTest {
     private UserVerificationTokenRepository userVerificationTokenRepository;
 
     @Autowired
+    private PermissionRepository permissionRepository;
+
+    @Autowired
     private RoleRepository roleRepository;
 
     @BeforeEach
@@ -68,6 +71,7 @@ public class LoginProcessTest {
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
+        permissionRepository.deleteAll();
         organizationRepository.deleteAll();
 
         this.mockMvc =
