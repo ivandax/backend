@@ -1,5 +1,6 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.dtos.RecoverPasswordDTO;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.UserVerificationToken;
 import com.backend.demo.repository.*;
@@ -282,4 +283,68 @@ public class AuthControllerTest {
     }
 
 
+    @Test
+    @DisplayName("Failure: Recover Password with Wrong HTTP Method")
+    public void recoverPasswordFailureByMethod() throws Exception {
+        RecoverPasswordDTO dto = new RecoverPasswordDTO("dev@mail.com");
+        String payload = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(get("/api/auth/recover-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Failure: Recover Password with Empty Body")
+    public void recoverPasswordFailureEmptyBody() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/recover-password")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body is missing"));
+    }
+
+    @Test
+    @DisplayName("Failure: Recover Password with Invalid Email Format")
+    public void recoverPasswordFailureInvalidEmail() throws Exception {
+        RecoverPasswordDTO dto = new RecoverPasswordDTO("invalid-email");
+        String payload = objectMapper.writeValueAsString(dto);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/recover-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("must be a well-formed email address"));
+    }
+
+    @Test
+    @DisplayName("Failure: Recover Password for Non-Existent User")
+    public void recoverPasswordFailureNonExistentUser() throws Exception {
+        RecoverPasswordDTO dto = new RecoverPasswordDTO("nonexistent@mail.com");
+        String payload = objectMapper.writeValueAsString(dto);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/recover-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("This username was not found"));
+    }
+
+    @Test
+    @DisplayName("Success: Recover Password for Existing User")
+    public void recoverPasswordSuccess() throws Exception {
+        RecoverPasswordDTO dto = new RecoverPasswordDTO("admin@mail.com");
+        String payload = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/auth/recover-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+    }
 }

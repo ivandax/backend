@@ -1,5 +1,6 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.dtos.RecoverPasswordDTO;
 import com.backend.demo.dtos.SignUpDTO;
 import com.backend.demo.dtos.VerificationTokenRequestDTO;
 import com.backend.demo.service.LogoutService;
@@ -86,5 +87,13 @@ public class AuthController {
         } else {
             throw new BadRequestException("Token is missing");
         }
+    }
+
+    @RequestMapping(value = "/recover-password", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    public void recoverPassword(HttpServletRequest request,
+                                              @RequestBody @Valid RecoverPasswordDTO dto) throws MessagingException {
+        String username = dto.getEmail();
+        userService.recoverPassword(username, request);
     }
 }

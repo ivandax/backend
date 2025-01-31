@@ -6,14 +6,8 @@ import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
-import com.backend.demo.model.Permission;
-import com.backend.demo.model.Role;
-import com.backend.demo.model.User;
-import com.backend.demo.model.UserVerificationToken;
-import com.backend.demo.repository.OrganizationRepository;
-import com.backend.demo.repository.RoleRepository;
-import com.backend.demo.repository.UserRepository;
-import com.backend.demo.repository.UserVerificationTokenRepository;
+import com.backend.demo.model.*;
+import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
 import com.backend.demo.utils.JwtUtils;
 import com.backend.demo.utils.PaginationUtils;
@@ -56,6 +50,9 @@ public class UserService {
 
     @Autowired
     private UserVerificationTokenRepository userVerificationTokenRepository;
+
+    @Autowired
+    private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
 
     @Autowired
     private ConfigProperties configProperties;
@@ -154,5 +151,27 @@ public class UserService {
             JwtUtils.catchJWTError(response, exception);
         }
         return null;
+    }
+
+    public void recoverPassword(String username, HttpServletRequest request) throws MessagingException {
+        User user =
+                userRepository.findByUsername(username)
+                        .orElseThrow(() -> new IllegalArgumentException("This username was not " +
+                                "found"));
+        passwordRecoveryTokenRepository.deleteWhereBelongsTo(user);
+
+        Algorithm algorithm =
+                Algorithm.HMAC256(configProperties.getPasswordRecoverySecret().getBytes());
+
+        String recoveryToken = JwtUtils.generatePasswordRecoveryToken(request, username,
+                algorithm);
+        PasswordRecoveryToken passwordRecoveryToken = new PasswordRecoveryToken(user,
+                recoveryToken);
+
+        passwordRecoveryTokenRepository.save(passwordRecoveryToken);
+
+        emailService.setPasswordRecoveryMessage(username,
+                "Taskmaster: Reset your password", recoveryToken);
+
     }
 }
