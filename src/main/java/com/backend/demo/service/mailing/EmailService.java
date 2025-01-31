@@ -37,8 +37,8 @@ public class EmailService {
 
     public void sendUserVerificationTokenMessage(String to, String subject,
                                                  String verificationToken) throws MessagingException {
-        String htmlContent = "<h3>Hello from taskmaster!</h3><p>Follow this <a" +
-                " href=\"http://localhost:3000"
+        String htmlContent = "<h3>Hello from Todolist app!</h3><p>Follow this <a" +
+                " href=\"http://localhost:5173"
                 + "/verify-token/"
                 + verificationToken
                 + "\" target=\"_blank\">link</a> to verify your account</p>";
@@ -47,7 +47,7 @@ public class EmailService {
 
     public void setPasswordRecoveryMessage(String to, String subject,
                                            String passwordRecoveryToken) throws MessagingException {
-        String htmlContent = "<h3>Hello from taskmaster!</h3><p>Follow this <a" +
+        String htmlContent = "<h3>Hello from Todolist!</h3><p>Follow this <a" +
                 " href=\"http://localhost:3000"
                 + "/set-new-password/"
                 + passwordRecoveryToken

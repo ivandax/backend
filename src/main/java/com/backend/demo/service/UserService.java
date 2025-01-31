@@ -85,7 +85,7 @@ public class UserService {
         userVerificationTokenRepository.save(userVerificationToken);
 
         emailService.sendUserVerificationTokenMessage(username,
-                "Taskmaster: Please verify your account", verificationToken);
+                "Todolist: Please verify your account", verificationToken);
     }
 
     public void verifyToken(HttpServletResponse response, String verificationToken) throws IOException {
