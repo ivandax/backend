@@ -1,6 +1,7 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.dtos.RecoverPasswordDTO;
+import com.backend.demo.dtos.SetNewPasswordDTO;
 import com.backend.demo.dtos.SignUpDTO;
 import com.backend.demo.dtos.VerificationTokenRequestDTO;
 import com.backend.demo.service.LogoutService;
@@ -95,5 +96,14 @@ public class AuthController {
                                               @RequestBody @Valid RecoverPasswordDTO dto) throws MessagingException {
         String username = dto.getEmail();
         userService.recoverPassword(username, request);
+    }
+
+    @RequestMapping(value = "/set-new-password", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    public void setNewPassword(HttpServletResponse response,
+                                             @RequestBody @Valid SetNewPasswordDTO dto) throws IOException {
+        String passwordRecoveryToken = dto.getPasswordRecoveryToken();
+        String newPassword = dto.getNewPassword();
+        userService.setNewPassword(response, passwordRecoveryToken, newPassword);
     }
 }

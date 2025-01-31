@@ -65,8 +65,12 @@ public class LoginProcessTest {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
+
     @BeforeEach
     void setup() {
+        passwordRecoveryTokenRepository.deleteAll();
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();

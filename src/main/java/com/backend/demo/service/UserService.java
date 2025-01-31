@@ -174,4 +174,26 @@ public class UserService {
                 "Taskmaster: Reset your password", recoveryToken);
 
     }
+
+    public void setNewPassword(HttpServletResponse response,
+                                             String passwordRecoveryToken,
+                                             String newPassword) throws IOException {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(configProperties.getPasswordRecoverySecret().getBytes());
+            String username = JwtUtils.getUsernameFromJWT(algorithm, passwordRecoveryToken);
+            User user = userRepository.findByUsername(username).orElseThrow(()->new BadRequestException("User not found"));
+            Optional<PasswordRecoveryToken> persistedPasswordRecoveryToken =
+                    passwordRecoveryTokenRepository.findByBelongsTo(user);
+            if (persistedPasswordRecoveryToken.isPresent()) {
+                user.setPassword(newPassword);
+                userRepository.save(user);
+                passwordRecoveryTokenRepository.delete(persistedPasswordRecoveryToken.get());
+            } else {
+                throw new IllegalArgumentException("Error with the provided password recovery " +
+                        "token");
+            }
+        } catch (JWTVerificationException exception) {
+            JwtUtils.catchVerificationTokenError(response, exception);
+        }
+    }
 }

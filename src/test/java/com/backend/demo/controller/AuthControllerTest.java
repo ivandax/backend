@@ -1,6 +1,8 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.dtos.RecoverPasswordDTO;
+import com.backend.demo.dtos.SetNewPasswordDTO;
+import com.backend.demo.model.PasswordRecoveryToken;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.UserVerificationToken;
 import com.backend.demo.repository.*;
@@ -60,6 +62,9 @@ public class AuthControllerTest {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
 
     @BeforeEach
     void setup() {
@@ -274,7 +279,7 @@ public class AuthControllerTest {
 
         MvcResult result = mockMvc.perform(post("/api/auth/renew-token")
                         .header("authorization",
-                        "Bearer " + refreshToken))
+                                "Bearer " + refreshToken))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -303,7 +308,8 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body is missing"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body " +
+                "is missing"));
     }
 
     @Test
@@ -318,7 +324,8 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("must be a well-formed email address"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("must be a well-formed " +
+                "email address"));
     }
 
     @Test
@@ -333,7 +340,8 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("This username was not found"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("This username was not " +
+                "found"));
     }
 
     @Test
@@ -346,5 +354,71 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Failure: Set New Password with Wrong HTTP Method")
+    public void setNewPasswordFailureByMethod() throws Exception {
+        SetNewPasswordDTO dto = new SetNewPasswordDTO("token123", "newPassword");
+        String payload = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(get("/api/auth/set-new-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Failure: Set New Password with Empty Body")
+    public void setNewPasswordFailureEmptyBody() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/set-new-password")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Required request body " +
+                "is missing"));
+    }
+
+    @Test
+    @DisplayName("Failure: Set New Password with Invalid Token")
+    public void setNewPasswordFailureInvalidToken() throws Exception {
+        SetNewPasswordDTO dto = new SetNewPasswordDTO("invalid-token", "newPassword123");
+        String payload = objectMapper.writeValueAsString(dto);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/auth/set-new-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("The token was expected " +
+                "to have 3 parts, but got 1"));
+    }
+
+    @Test
+    @DisplayName("Success: Set New Password")
+    public void setNewPasswordSuccess() throws Exception {
+        User user = new User("test@example.com", "oldPassword");
+        userRepository.save(user);
+
+        mockMvc.perform(post("/api/auth/recover-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new RecoverPasswordDTO(user.getUsername()))))
+                .andExpect(status().isOk());
+
+        PasswordRecoveryToken recoveryToken = passwordRecoveryTokenRepository.findByBelongsTo(user)
+                .orElseThrow(() -> new AssertionError("Recovery token not found"));
+
+        SetNewPasswordDTO dto = new SetNewPasswordDTO(recoveryToken.getPasswordRecoveryToken(),
+                "newStrongPassword123!");
+        String payload = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/auth/set-new-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+
+        assertFalse(passwordRecoveryTokenRepository.findByBelongsTo(user).isPresent());
     }
 }

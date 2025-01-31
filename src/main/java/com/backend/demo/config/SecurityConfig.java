@@ -94,6 +94,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/renew-token").permitAll()
                         .requestMatchers("/api/auth/verify-token").permitAll()
                         .requestMatchers("/api/auth/recover-password").permitAll()
+                        .requestMatchers("/api/auth/set-new-password").permitAll()
                         .requestMatchers("/api/todolists/create").hasAuthority("create:todolist")
                         .requestMatchers("/api/todolists/{id}/update").hasAuthority("update" +
                                 ":todolist")

@@ -48,22 +48,10 @@ public class EmailService {
     public void setPasswordRecoveryMessage(String to, String subject,
                                            String passwordRecoveryToken) throws MessagingException {
         String htmlContent = "<h3>Hello from Todolist!</h3><p>Follow this <a" +
-                " href=\"http://localhost:3000"
+                " href=\"http://localhost:5173"
                 + "/set-new-password/"
                 + passwordRecoveryToken
                 + "\" target=\"_blank\">link</a> to reset your password</p>";
-        sendHTMLMessage(to, subject, htmlContent);
-    }
-
-    public void sendUserCreatedMessage(String to, String subject,
-                                       String verificationToken,
-                                       String temporaryPassword) throws MessagingException {
-        String htmlContent = "<h3>An account has been created for you</h3><p>Follow this <a" +
-                " href=\"http://localhost:3000"
-                + "/verify-token/"
-                + verificationToken
-                + "\" target=\"_blank\">link</a> to verify your account</p>" + "<p>You " +
-                "can then login with this temporary Password: " + temporaryPassword + "</p>";
         sendHTMLMessage(to, subject, htmlContent);
     }
 }

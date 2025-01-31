@@ -9,6 +9,7 @@ import com.backend.demo.errors.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.client.HttpClientErrorException;
@@ -19,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -107,11 +107,7 @@ public class JwtUtils {
 
     public static void catchVerificationTokenError(HttpServletResponse response,
                                                    JWTVerificationException exception) throws IOException {
-        response.setHeader("error", exception.getMessage());
-        response.setStatus(BAD_REQUEST.value());
-        response.setContentType(APPLICATION_JSON_VALUE);
-        ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, exception.getMessage());
-        new ObjectMapper().writeValue(response.getOutputStream(), errorResponse);
+        throw new BadRequestException(exception.getMessage());
     }
 
     public static void catchOrganizationIdError(HttpServletResponse response,
