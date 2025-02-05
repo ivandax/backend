@@ -82,12 +82,6 @@ Update the DB with migration file
  ./gradlew update
 ```
 
-Also, we can do this with liquibase CLI (once installed) instead of gradlew commands:
-
-New change log file (master)
-```aidl
-liquibase generateChangeLog
-```
 
 ### TODO
 
