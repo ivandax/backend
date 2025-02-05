@@ -68,8 +68,16 @@ public class LoginProcessTest {
     @Autowired
     private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
 
+    @Autowired
+    private TodolistRepository todolistRepository;
+
+    @Autowired
+    private TodoRepository todoRepository;
+
     @BeforeEach
     void setup() {
+        todoRepository.deleteAll();
+        todolistRepository.deleteAll();
         passwordRecoveryTokenRepository.deleteAll();
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
@@ -123,7 +131,8 @@ public class LoginProcessTest {
                 .andExpect(status().isUnauthorized())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("Invalid username or password"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Invalid username or " +
+                "password"));
     }
 
     @Test
@@ -137,7 +146,8 @@ public class LoginProcessTest {
                 .andExpect(status().isUnauthorized())
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains("Invalid username or password"));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains("Invalid username or " +
+                "password"));
     }
 
     @Test

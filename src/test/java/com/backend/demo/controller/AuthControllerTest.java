@@ -66,8 +66,16 @@ public class AuthControllerTest {
     @Autowired
     private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
 
+    @Autowired
+    private TodolistRepository todolistRepository;
+
+    @Autowired
+    private TodoRepository todoRepository;
+
     @BeforeEach
     void setup() {
+        todoRepository.deleteAll();
+        todolistRepository.deleteAll();
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();

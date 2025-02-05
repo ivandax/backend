@@ -72,8 +72,9 @@ public class UserControllerTest {
 
     @BeforeEach
     void setup() {
-        passwordRecoveryTokenRepository.deleteAll();
+        todoRepository.deleteAll();
         todolistRepository.deleteAll();
+        passwordRecoveryTokenRepository.deleteAll();
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();

@@ -28,7 +28,7 @@ public class Todo {
     private User assignedTo;
 
     @NotNull
-    private Integer order;
+    private Integer sequenceNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "todolist_id", nullable = false)
@@ -100,11 +100,11 @@ public class Todo {
         this.assignedTo = assignedTo;
     }
 
-    public Integer getOrder() {
-        return order;
+    public Integer getSequenceNumber() {
+        return sequenceNumber;
     }
 
-    public void setOrder(Integer order) {
-        this.order = order;
+    public void setSequenceNumber(Integer sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
     }
 }
