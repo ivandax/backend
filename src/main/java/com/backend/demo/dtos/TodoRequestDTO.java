@@ -10,12 +10,18 @@ public class TodoRequestDTO {
     @NotNull
     private boolean isCompleted;
 
+    @NotNull
+    private Integer sequenceNumber;
+
+    private Integer assignToUserId;
+
     public TodoRequestDTO() {
     }
 
-    public TodoRequestDTO(String description, boolean isCompleted) {
+    public TodoRequestDTO(String description, boolean isCompleted, Integer sequenceNumber) {
         this.description = description;
         this.isCompleted = isCompleted;
+        this.sequenceNumber = sequenceNumber;
     }
 
     public String getDescription() {
@@ -32,5 +38,21 @@ public class TodoRequestDTO {
 
     public void setCompleted(boolean completed) {
         isCompleted = completed;
+    }
+
+    public Integer getSequenceNumber() {
+        return sequenceNumber;
+    }
+
+    public void setSequenceNumber(Integer sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
+    }
+
+    public Integer getAssignToUserId() {
+        return assignToUserId;
+    }
+
+    public void setAssignToUserId(Integer assignToUserId) {
+        this.assignToUserId = assignToUserId;
     }
 }

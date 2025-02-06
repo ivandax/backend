@@ -194,7 +194,7 @@ public class TodolistControllerTest {
         record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
         }
 
-        TodoRequestDTO todo = new TodoRequestDTO("Hello world! This is my todo", false);
+        TodoRequestDTO todo = new TodoRequestDTO("Hello world! This is my todo", false, 1);
 
         CreateTodolistRequest request =
                 new CreateTodolistRequest("test", "some description", List.of(todo));
@@ -275,7 +275,7 @@ public class TodolistControllerTest {
         record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
         }
 
-        TodoRequestDTO todo = new TodoRequestDTO("Initial todo", false);
+        TodoRequestDTO todo = new TodoRequestDTO("Initial todo", false, 1);
         CreateTodolistRequest createRequest =
                 new CreateTodolistRequest("Initial title", "Initial description", List.of(todo));
 
@@ -297,7 +297,7 @@ public class TodolistControllerTest {
         record UpdateTodolistRequestMissingDescription(String title) {
         }
 
-        TodoRequestDTO updatedTodo = new TodoRequestDTO("Updated todo", true);
+        TodoRequestDTO updatedTodo = new TodoRequestDTO("Updated todo", true, 1);
         UpdateTodolistRequestMissingDescription updateRequest =
                 new UpdateTodolistRequestMissingDescription("Updated title");
 
@@ -369,7 +369,7 @@ public class TodolistControllerTest {
         record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
         }
 
-        TodoRequestDTO todo = new TodoRequestDTO("Initial todo", false);
+        TodoRequestDTO todo = new TodoRequestDTO("Initial todo", false, 1);
         CreateTodolistRequest createRequest =
                 new CreateTodolistRequest("Initial title", "Initial description", List.of(todo));
 
@@ -460,10 +460,10 @@ public class TodolistControllerTest {
                 objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
         String accessToken = tokensResponse.get("access_token");
 
-        record CreateTodoInvalidBody(String description) {
+        record CreateTodoBody(String description, boolean isCompleted, Integer sequenceNumber) {
         }
 
-        CreateTodoInvalidBody request = new CreateTodoInvalidBody("test");
+        CreateTodoBody request = new CreateTodoBody("test", false, 1);
         String payload = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/api/todolists/" + otherTodolist.getId() + "/add-todo")
@@ -496,10 +496,10 @@ public class TodolistControllerTest {
         Todolist todolist = new Todolist(user);
         todolistRepository.save(todolist);
 
-        record CreateTodoBody(String description) {
+        record CreateTodoBody(String description, boolean isCompleted, Integer sequenceNumber) {
         }
 
-        CreateTodoBody request = new CreateTodoBody("test");
+        CreateTodoBody request = new CreateTodoBody("test", false, 1);
         String payload = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/api/todolists/" + todolist.getId() + "/add-todo")
@@ -516,7 +516,7 @@ public class TodolistControllerTest {
                 userRepository.findByUsername("no_permissions@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
 
         Todolist otherTodolist = new Todolist(otherUser);
-        Todo otherTodo = new Todo("test", otherTodolist);
+        Todo otherTodo = new Todo("test", otherTodolist, 1);
         List<Todo> todos = List.of(otherTodo);
         otherTodolist.setTodos(todos);
         todolistRepository.save(otherTodolist);
@@ -533,10 +533,10 @@ public class TodolistControllerTest {
                 objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
         String accessToken = tokensResponse.get("access_token");
 
-        record UpdateTodoBody(String description, boolean isCompleted) {
+        record UpdateTodoBody(String description, boolean isCompleted, Integer sequenceNumber) {
         }
 
-        UpdateTodoBody request = new UpdateTodoBody("test2", true);
+        UpdateTodoBody request = new UpdateTodoBody("test", false, 1);
         String payload = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(patch("/api/todolists/" + otherTodolist.getId() + "/todos/" + otherTodo.getId())
@@ -567,7 +567,7 @@ public class TodolistControllerTest {
                 userRepository.findByUsername("admin@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
 
         Todolist todolist = new Todolist(user);
-        Todo todo = new Todo("test", todolist);
+        Todo todo = new Todo("test", todolist, 1);
         List<Todo> todos = List.of(todo);
         todolist.setTodos(todos);
         todolistRepository.save(todolist);
@@ -605,15 +605,15 @@ public class TodolistControllerTest {
                 userRepository.findByUsername("admin@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
 
         Todolist todolist = new Todolist(user);
-        Todo todo = new Todo("test", todolist);
+        Todo todo = new Todo("test", todolist, 1);
         List<Todo> todos = List.of(todo);
         todolist.setTodos(todos);
         todolistRepository.save(todolist);
 
-        record CreateTodoBody(String description, boolean isComplete) {
+        record CreateTodoBody(String description, boolean isCompleted, Integer sequenceNumber) {
         }
 
-        CreateTodoBody request = new CreateTodoBody("test2", true);
+        CreateTodoBody request = new CreateTodoBody("test", false, 1);
         String payload = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(patch("/api/todolists/" + todolist.getId() + "/todos/" + todo.getId())

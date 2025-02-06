@@ -5,14 +5,16 @@ public class TodoDTO {
     private Integer id;
     private String description;
     private boolean isCompleted;
+    private Integer sequenceNumber;
 
     public TodoDTO() {
     }
 
-    public TodoDTO(Integer id, String description, boolean isCompleted) {
+    public TodoDTO(Integer id, String description, boolean isCompleted, Integer sequenceNumber) {
         this.id = id;
         this.description = description;
         this.isCompleted = isCompleted;
+        this.sequenceNumber = sequenceNumber;
     }
 
     public Integer getId() {
@@ -37,5 +39,13 @@ public class TodoDTO {
 
     public void setCompleted(boolean completed) {
         isCompleted = completed;
+    }
+
+    public Integer getSequenceNumber() {
+        return sequenceNumber;
+    }
+
+    public void setSequenceNumber(Integer sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
     }
 }

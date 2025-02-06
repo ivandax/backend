@@ -38,7 +38,8 @@ public class TodolistService {
         newTodoList.setTitle(todolistRequestDTO.getTitle());
         newTodoList.setDescription(todolistRequestDTO.getDescription());
         List<Todo> todos = todolistRequestDTO.getTodos().stream()
-                .map(todoRequestDTO -> new Todo(todoRequestDTO.getDescription(), newTodoList)).toList();
+                .map(todoRequestDTO -> new Todo(todoRequestDTO.getDescription(), newTodoList,
+                        todoRequestDTO.getSequenceNumber())).toList();
         newTodoList.setTodos(todos);
 
         todolistRepository.save(newTodoList);
@@ -85,11 +86,12 @@ public class TodolistService {
             throw new BadRequestException("Error of ownership. Does not belong to this todo list");
         }
 
-        Todo todo = new Todo(dto.getDescription(), todolist);
+        Todo todo = new Todo(dto.getDescription(), todolist, dto.getSequenceNumber());
         todoRepository.save(todo);
     }
 
-    public void updateTodo(Integer id, Integer todoId, TodoRequestDTO dto, CustomUserDetails userDetails) throws BadRequestException {
+    public void updateTodo(Integer id, Integer todoId, TodoRequestDTO dto,
+                           CustomUserDetails userDetails) throws BadRequestException {
         Todolist todolist = todolistRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Todolist not found"));
         boolean canEdit = checkCanEdit(todolist, userDetails);
@@ -98,7 +100,8 @@ public class TodolistService {
             throw new BadRequestException("Error of ownership. Does not belong to this todo list");
         }
 
-        Todo todo = todoRepository.findById(todoId).orElseThrow(() -> new BadRequestException("Todo not found"));
+        Todo todo = todoRepository.findById(todoId).orElseThrow(() -> new BadRequestException(
+                "Todo not found"));
         todo.setDescription(dto.getDescription());
         todo.setCompleted(dto.isCompleted());
 

@@ -37,9 +37,10 @@ public class Todo {
     public Todo() {
     }
 
-    public Todo(String description, Todolist todolist) {
+    public Todo(String description, Todolist todolist, Integer sequenceNumber) {
         this.description = description;
         setTodolist(todolist);
+        setSequenceNumber(sequenceNumber);
         setCreated();
         setUpdated();
     }

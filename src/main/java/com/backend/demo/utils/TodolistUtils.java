@@ -31,7 +31,8 @@ public class TodolistUtils {
         return new TodoDTO(
                 todo.getId(),
                 todo.getDescription(),
-                todo.isCompleted()
+                todo.isCompleted(),
+                todo.getSequenceNumber()
         );
     }
 }
