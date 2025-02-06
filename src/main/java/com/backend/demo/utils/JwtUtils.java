@@ -25,7 +25,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class JwtUtils {
     public static int token_minutes_duration = 60;
-    public static int refresh_token_minutes_duration = 60 * 2;
+    public static int refresh_token_minutes_duration = 60 * 24 * 7;
     public static int verification_token_minutes_duration = 60;
 
     public static Map<String, String> generateAccessAndRefreshTokens(HttpServletRequest request,
