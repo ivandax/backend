@@ -13,6 +13,7 @@ public class Todo {
     private Integer id;
 
     @NotNull
+    @Column(length = 1000)
     private String description;
 
     private boolean isCompleted = false;
