@@ -1,8 +1,11 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.dtos.ResourceResponseDTO;
+import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +23,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -154,7 +158,96 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
+        ResourceResponseDTO<UserResponseDTO> response =
+                objectMapper.readValue(usersResult.getResponse().getContentAsString(),
+                        new TypeReference<>() {
+                        });
+
+        List<UserResponseDTO> users = response.getItems();
+
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertEquals(2, users.size(), "Should have exactly 2 users in items array");
+    }
+
+    @Test
+    @DisplayName("Success: Get users with Sorting by username DESC")
+    public void getUsersSuccessWithSortingDESC() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+
+        MvcResult usersResult = mockMvc.perform(get("/api/users?sortBy=username&sortDirection=DESC")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        System.out.println(usersResult.getResponse().getContentAsString());
+
+        ResourceResponseDTO<UserResponseDTO> response =
+                objectMapper.readValue(usersResult.getResponse().getContentAsString(),
+                        new TypeReference<>() {
+                        });
+
+        List<UserResponseDTO> users = response.getItems();
+
+        assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertEquals(2, users.size(), "Should have exactly 2 users in items array");
+        UserResponseDTO firstItem = users.get(0);
+        UserResponseDTO secondItem = users.get(1);
+        assertEquals("no_permissions@mail.com", firstItem.getUsername());
+        assertEquals("admin@mail.com", secondItem.getUsername());
+    }
+
+    @Test
+    @DisplayName("Success: Get users with Sorting by username ASC")
+    public void getUsersSuccessWithSortingASC() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+
+        MvcResult usersResult = mockMvc.perform(get("/api/users?sortBy=username&sortDirection=ASC")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        System.out.println(usersResult.getResponse().getContentAsString());
+
+        ResourceResponseDTO<UserResponseDTO> response =
+                objectMapper.readValue(usersResult.getResponse().getContentAsString(),
+                        new TypeReference<>() {
+                        });
+
+        List<UserResponseDTO> users = response.getItems();
+
+        assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertEquals(2, users.size(), "Should have exactly 2 users in items array");
+        UserResponseDTO firstItem = users.get(0);
+        UserResponseDTO secondItem = users.get(1);
+        assertEquals("admin@mail.com", firstItem.getUsername());
+        assertEquals("no_permissions@mail.com", secondItem.getUsername());
     }
 
     @Test
