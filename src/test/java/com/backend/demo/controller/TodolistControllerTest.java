@@ -1,9 +1,13 @@
 package com.backend.demo.controller;
 
+import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodoRequestDTO;
+import com.backend.demo.dtos.TodolistDTO;
+import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -254,6 +259,53 @@ public class TodolistControllerTest {
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items", hasSize(0)))
                 .andReturn();
+    }
+
+    @Test
+    @DisplayName("Success: get todolists for user with sorting ASC")
+    public void getTodolistsForUserWithSortingASC() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        User user =
+                userRepository.findByUsername("admin@mail.com").orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        Todolist newTodoList1 = new Todolist(user);
+        newTodoList1.setTitle("A: Should be first");
+        Todolist newTodoList2 = new Todolist(user);
+        newTodoList2.setTitle("B: Should be second");
+
+        todolistRepository.saveAll(List.of(newTodoList1, newTodoList2));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+        MvcResult result =
+                mockMvc.perform(get("/api/todolists?sortBy=title&sortDirection=ASC").header(
+                                "authorization"
+                                , "Bearer " + accessToken))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.items").isArray())
+                        .andExpect(jsonPath("$.items", hasSize(2)))
+                        .andReturn();
+
+        ResourceResponseDTO<TodolistDTO> response =
+                objectMapper.readValue(result.getResponse().getContentAsString(),
+                        new TypeReference<>() {
+                        });
+
+        List<TodolistDTO> todolists = response.getItems();
+        assertEquals(2, todolists.size(), "Should have exactly 2 todolists in items array");
+        TodolistDTO firstItem = todolists.get(0);
+        TodolistDTO secondItem = todolists.get(1);
+        assertEquals("A: Should be first", firstItem.getTitle());
+        assertEquals("B: Should be second", secondItem.getTitle());
     }
 
     @Test
