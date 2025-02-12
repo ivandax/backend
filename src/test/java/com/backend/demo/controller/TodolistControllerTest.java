@@ -3,7 +3,6 @@ package com.backend.demo.controller;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodoRequestDTO;
 import com.backend.demo.dtos.TodolistDTO;
-import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
