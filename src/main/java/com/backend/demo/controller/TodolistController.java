@@ -68,4 +68,12 @@ public class TodolistController {
         todolistService.updateTodo(id, todoId, dto, userPrincipal);
     }
 
+    @RequestMapping(value = "/{id}/delete", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTodolist(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserDetails userPrincipal) throws BadRequestException {
+        todolistService.deleteTodolist(id, userPrincipal);
+    }
+
 }

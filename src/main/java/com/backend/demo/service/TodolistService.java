@@ -118,4 +118,17 @@ public class TodolistService {
 
         return isOwner || isSharedWith;
     }
+
+    public void deleteTodolist(Integer id, CustomUserDetails userDetails) throws BadRequestException {
+        Todolist todolist = todolistRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Todolist not found"));
+
+        boolean canEdit = checkCanEdit(todolist, userDetails);
+
+        if (!canEdit) {
+            throw new BadRequestException("Error of ownership. You don't have permission to delete this todolist");
+        }
+
+        todolistRepository.delete(todolist);
+    }
 }
