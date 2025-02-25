@@ -673,4 +673,124 @@ public class TodolistControllerTest {
                         .content(payload))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("Failure: Delete todolist without auth")
+    public void deleteTodolistFailureNoAuth() throws Exception {
+        mockMvc.perform(delete("/api/todolists/1/delete"))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("Failure: Delete todolist without permissions")
+    public void deleteTodolistFailureNoPermissions() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "no_permissions@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(delete("/api/todolists/1/delete")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("Failure: Delete todolist that doesn't exist")
+    public void deleteTodolistFailureNotFound() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Use a non-existent ID
+        mockMvc.perform(delete("/api/todolists/999/delete")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("Todolist not found")));
+    }
+
+    @Test
+    @DisplayName("Failure: Delete todolist without ownership")
+    public void deleteTodolistFailureByOwnership() throws Exception {
+        User otherUser =
+                userRepository.findByUsername("no_permissions@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
+
+        Todolist otherTodolist = new Todolist(otherUser);
+        todolistRepository.save(otherTodolist);
+
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(delete("/api/todolists/" + otherTodolist.getId() + "/delete")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("Error of ownership. You don't have permission to delete this " +
+                                "todolist")));
+    }
+
+    @Test
+    @DisplayName("Success: Delete todolist")
+    public void deleteTodolistSuccess() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        User user =
+                userRepository.findByUsername("admin@mail.com").orElseThrow(() -> new RuntimeException("User not found"));
+
+        Todolist todolist = new Todolist(user);
+        todolist.setTitle("Todolist to delete");
+        // Add a todo to test cascade delete
+        Todo todo = new Todo("Test todo", todolist, 1);
+        List<Todo> todos = List.of(todo);
+        todolist.setTodos(todos);
+        todolistRepository.save(todolist);
+
+        // Verify todolist exists before deletion
+        assertTrue(todolistRepository.findById(todolist.getId()).isPresent());
+
+        mockMvc.perform(delete("/api/todolists/" + todolist.getId() + "/delete")
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
+
+        // Verify todolist no longer exists after deletion
+        assertTrue(todolistRepository.findById(todolist.getId()).isEmpty());
+        // Verify associated todo was also deleted (cascade)
+        assertTrue(todoRepository.findById(todo.getId()).isEmpty());
+    }
 }
