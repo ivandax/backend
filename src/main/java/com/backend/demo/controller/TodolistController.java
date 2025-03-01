@@ -22,7 +22,7 @@ public class TodolistController {
     @ResponseStatus(HttpStatus.CREATED)
     public void createTodolist(
             @AuthenticationPrincipal CustomUserDetails userPrincipal,
-            @RequestBody @Valid TodolistRequestDTO dto) {
+            @RequestBody @Valid TodolistCreateRequestDTO dto) {
         todolistService.createTodolist(userPrincipal.getUser(), dto);
     }
 

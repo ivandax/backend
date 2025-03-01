@@ -14,4 +14,7 @@ public interface TodolistRepository extends JpaRepository<Todolist, Integer> {
     Optional<Todolist> findByTitle(String title);
     @Query("SELECT t FROM Todolist t WHERE t.createdBy = :user OR :user MEMBER OF t.sharedWith")
     Page<Todolist> findByCreatedByOrSharedWith(@Param("user") User user, Pageable pageable);
+
+    @Query("SELECT t FROM Todolist t LEFT JOIN FETCH t.todos WHERE t.id = :id")
+    Optional<Todolist> findByIdWithTodos(@Param("id") Integer id);
 }

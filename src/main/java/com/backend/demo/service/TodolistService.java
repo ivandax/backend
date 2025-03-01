@@ -17,8 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,7 +34,7 @@ public class TodolistService {
     @Autowired
     private ConfigProperties configProperties;
 
-    public void createTodolist(User user, TodolistRequestDTO todolistRequestDTO) {
+    public void createTodolist(User user, TodolistCreateRequestDTO todolistRequestDTO) {
         Todolist newTodoList = new Todolist(user);
         newTodoList.setTitle(todolistRequestDTO.getTitle());
         newTodoList.setDescription(todolistRequestDTO.getDescription());
@@ -73,6 +74,29 @@ public class TodolistService {
 
         todolist.setTitle(dto.getTitle());
         todolist.setDescription(dto.getDescription());
+
+        Map<Integer, Todo> persistedTodos = todolist.getTodos().stream()
+                .collect(Collectors.toMap(Todo::getId, todo -> todo));
+
+        for (TodoUpdateDTO todoDTO : dto.getUpdateTodos()) {
+            Todo existingTodo = persistedTodos.get(todoDTO.getId());
+            if (existingTodo != null) {
+                existingTodo.setDescription(todoDTO.getDescription());
+                existingTodo.setCompleted(todoDTO.isCompleted());
+            }
+        }
+
+        for (TodoRequestDTO newTodoDTO : dto.getCreateTodos()) {
+            Todo newTodo = new Todo(newTodoDTO.getDescription(), todolist,
+                    newTodoDTO.getSequenceNumber());
+            todolist.addTodo(newTodo);
+        }
+
+        Set<Integer> deleteIds = dto.getDeleteTodoIds().stream()
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+
+        todolist.getTodos().removeIf(todo -> deleteIds.contains(todo.getId()));
 
         todolistRepository.save(todolist);
     }
@@ -126,7 +150,8 @@ public class TodolistService {
         boolean canEdit = checkCanEdit(todolist, userDetails);
 
         if (!canEdit) {
-            throw new BadRequestException("Error of ownership. You don't have permission to delete this todolist");
+            throw new BadRequestException("Error of ownership. You don't have permission to " +
+                    "delete this todolist");
         }
 
         todolistRepository.delete(todolist);

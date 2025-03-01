@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public class TodolistRequestDTO {
+public class TodolistCreateRequestDTO {
     @NotNull
     private String title;
     @NotNull
@@ -12,7 +12,7 @@ public class TodolistRequestDTO {
     @NotNull
     private List<TodoRequestDTO> todos;
 
-    public TodolistRequestDTO(String title, String description, List<TodoRequestDTO> todos) {
+    public TodolistCreateRequestDTO(String title, String description, List<TodoRequestDTO> todos) {
         this.title = title;
         this.description = description;
         this.todos = todos;

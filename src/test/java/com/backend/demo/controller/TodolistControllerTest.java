@@ -2,6 +2,7 @@ package com.backend.demo.controller;
 
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.TodoRequestDTO;
+import com.backend.demo.dtos.TodoUpdateDTO;
 import com.backend.demo.dtos.TodolistDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -345,12 +347,12 @@ public class TodolistControllerTest {
         Integer todolistId = (Integer) createdTodolist.getId();
 
         // Step 3: Prepare the update payload
-        record UpdateTodolistRequestMissingDescription(String title) {
+        record UpdateTodolistRequestMissingItems(String title) {
         }
 
         TodoRequestDTO updatedTodo = new TodoRequestDTO("Updated todo", true, 1);
-        UpdateTodolistRequestMissingDescription updateRequest =
-                new UpdateTodolistRequestMissingDescription("Updated title");
+        UpdateTodolistRequestMissingItems updateRequest =
+                new UpdateTodolistRequestMissingItems("Updated title");
 
         String updatePayload = objectMapper.writeValueAsString(updateRequest);
 
@@ -382,11 +384,15 @@ public class TodolistControllerTest {
                 objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
         String accessToken = tokensResponse.get("access_token");
 
-        record UpdateTodolistRequest(String title, String description) {
+        record UpdateTodolistRequest(String title, String description,
+                                     List<TodoUpdateDTO> updateTodos,
+                                     List<TodoRequestDTO> createTodos,
+                                     List<String> deleteTodoIds) {
         }
 
         UpdateTodolistRequest updateRequest =
-                new UpdateTodolistRequest("Updated title", "Updated description");
+                new UpdateTodolistRequest("Updated title", "Updated description",
+                        new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
         String updatePayload = objectMapper.writeValueAsString(updateRequest);
 
@@ -439,11 +445,15 @@ public class TodolistControllerTest {
         Integer todolistId = (Integer) createdTodolist.getId();
 
         // Step 3: Prepare the update payload
-        record UpdateTodolistRequest(String title, String description) {
+        record UpdateTodolistRequest(String title, String description,
+                                     List<TodoUpdateDTO> updateTodos,
+                                     List<TodoRequestDTO> createTodos,
+                                     List<String> deleteTodoIds) {
         }
 
         UpdateTodolistRequest updateRequest =
-                new UpdateTodolistRequest("Updated title", "Updated description");
+                new UpdateTodolistRequest("Updated title", "Updated description",
+                        new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
         String updatePayload = objectMapper.writeValueAsString(updateRequest);
 
@@ -453,6 +463,82 @@ public class TodolistControllerTest {
                         .content(updatePayload)
                         .header("authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Success: Update a todolist with an update to a todo")
+    public void updateExistingTodoSuccess() throws Exception {
+        // Step 1: Authenticate as admin user
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Step 2: Create a todo list with one todo
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
+        }
+
+        TodoRequestDTO todo = new TodoRequestDTO("Initial todo", false, 1);
+        CreateTodolistRequest createRequest =
+                new CreateTodolistRequest("Initial title", "Initial description", List.of(todo));
+
+        String createPayload = objectMapper.writeValueAsString(createRequest);
+
+        MvcResult createResult = mockMvc.perform(post("/api/todolists/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createPayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Todolist createdTodolist =
+                todolistRepository.findByTitle("Initial title").orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        Todo createdTodo =
+                todoRepository.findByDescription("Initial todo").orElseThrow(() -> new RuntimeException("Todo not found"));
+        Integer todoId = createdTodo.getId();
+        Integer sequenceNumber = createdTodo.getSequenceNumber();
+
+        // Step 3: Prepare the update payload (updating the existing todo)
+        record UpdateTodolistRequest(String title, String description,
+                                     List<TodoUpdateDTO> updateTodos,
+                                     List<TodoRequestDTO> createTodos,
+                                     List<String> deleteTodoIds) {
+        }
+
+        TodoUpdateDTO updatedTodo = new TodoUpdateDTO(todoId, "Updated todo description", true,
+                sequenceNumber);
+        UpdateTodolistRequest updateRequest =
+                new UpdateTodolistRequest("Updated title", "Updated description",
+                        List.of(updatedTodo), new ArrayList<>(), new ArrayList<>());
+
+        String updatePayload = objectMapper.writeValueAsString(updateRequest);
+
+        // Step 4: Perform the update request
+        mockMvc.perform(patch("/api/todolists/" + createdTodolist.getId() + "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Step 5: Validate that the todo was updated in the database
+        Todolist updatedTodolistWithTodos =
+                todolistRepository.findByIdWithTodos(createdTodolist.getId())
+                        .orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        Todo updatedTodoInDb = updatedTodolistWithTodos.getTodos().stream()
+                .filter(t -> t.getId().equals(todoId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Updated Todo not found"));
+
+        assertEquals("Updated todo description", updatedTodoInDb.getDescription());
+        assertTrue(updatedTodoInDb.isCompleted());
     }
 
     @Test
