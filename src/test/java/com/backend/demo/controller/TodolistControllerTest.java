@@ -542,6 +542,133 @@ public class TodolistControllerTest {
     }
 
     @Test
+    @DisplayName("Success: Add a new todo to an existing todolist")
+    public void addNewTodoSuccess() throws Exception {
+        // Step 1: Authenticate as admin user
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Step 2: Create a todolist with no todos
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {}
+
+        CreateTodolistRequest createRequest =
+                new CreateTodolistRequest("Todo List for Adding", "Testing adding todos", new ArrayList<>());
+
+        String createPayload = objectMapper.writeValueAsString(createRequest);
+
+        MvcResult createResult = mockMvc.perform(post("/api/todolists/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createPayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Todolist createdTodolist =
+                todolistRepository.findByTitle("Todo List for Adding").orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        // Step 3: Prepare the update payload (creating a new todo)
+        record UpdateTodolistRequest(String title, String description,
+                                     List<TodoUpdateDTO> updateTodos,
+                                     List<TodoRequestDTO> createTodos,
+                                     List<String> deleteTodoIds) {}
+
+        TodoRequestDTO newTodo = new TodoRequestDTO("Newly added todo", false, 1);
+        UpdateTodolistRequest updateRequest =
+                new UpdateTodolistRequest("Todo List for Adding", "Testing adding todos",
+                        new ArrayList<>(), List.of(newTodo), new ArrayList<>());
+
+        String updatePayload = objectMapper.writeValueAsString(updateRequest);
+
+        // Step 4: Perform the update request (adding the new todo)
+        mockMvc.perform(patch("/api/todolists/" + createdTodolist.getId() + "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Step 5: Validate that the new todo was created in the database
+        Todolist updatedTodolistWithTodos =
+                todolistRepository.findByIdWithTodos(createdTodolist.getId())
+                        .orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        assertEquals(1, updatedTodolistWithTodos.getTodos().size());
+        assertEquals("Newly added todo", updatedTodolistWithTodos.getTodos().get(0).getDescription());
+    }
+
+    @Test
+    @DisplayName("Success: Delete an existing todo from a todolist")
+    public void deleteTodoSuccess() throws Exception {
+        // Step 1: Authenticate as admin user
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Step 2: Create a todo list with one todo
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {}
+
+        TodoRequestDTO todo = new TodoRequestDTO("Todo to delete", false, 1);
+        CreateTodolistRequest createRequest =
+                new CreateTodolistRequest("Todo List for Deletion", "Testing deleting todos", List.of(todo));
+
+        String createPayload = objectMapper.writeValueAsString(createRequest);
+
+        MvcResult createResult = mockMvc.perform(post("/api/todolists/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createPayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Todolist createdTodolist =
+                todolistRepository.findByTitle("Todo List for Deletion").orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        Todo createdTodo =
+                todoRepository.findByDescription("Todo to delete").orElseThrow(() -> new RuntimeException("Todo not found"));
+        Integer todoId = createdTodo.getId();
+
+        // Step 3: Prepare the update payload (deleting the existing todo)
+        record UpdateTodolistRequest(String title, String description,
+                                     List<TodoUpdateDTO> updateTodos,
+                                     List<TodoRequestDTO> createTodos,
+                                     List<String> deleteTodoIds) {}
+
+        UpdateTodolistRequest updateRequest =
+                new UpdateTodolistRequest("Todo List for Deletion", "Testing deleting todos",
+                        new ArrayList<>(), new ArrayList<>(), List.of(todoId.toString()));
+
+        String updatePayload = objectMapper.writeValueAsString(updateRequest);
+
+        // Step 4: Perform the update request (deleting the todo)
+        mockMvc.perform(patch("/api/todolists/" + createdTodolist.getId() + "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Step 5: Validate that the todo was deleted from the database
+        Todolist updatedTodolistWithTodos =
+                todolistRepository.findByIdWithTodos(createdTodolist.getId())
+                        .orElseThrow(() -> new RuntimeException("Todolist not found"));
+
+        assertTrue(updatedTodolistWithTodos.getTodos().isEmpty());
+    }
+
+    @Test
     @DisplayName("Failure: Create todolist with invalid body")
     public void addTodoFailureInvalidBody() throws Exception {
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
