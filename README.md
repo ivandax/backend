@@ -83,12 +83,7 @@ Update the DB with migration file
 ```
 
 
-### TODO
+### Deployment in Railway
 
-Couldn't use the hibernate liquibase properties to check the models and obtain a change log 
-based on the changes of the schema.
-
-reference-url=hibernate:ejb3:com.backend.demo.model
-reference-driver=liquibase.ext.hibernate.database.connection.HibernateDriver
-
-We still rely on checking the actual DB to make the diff changelog.
+ - Railway connects to the repo in github and automatically makes a build of the app.
+ - 
