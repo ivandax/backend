@@ -11,6 +11,8 @@ import java.util.Arrays;
 @ConfigurationPropertiesScan("com.backend.demo.config")
 public class BackendApplication {
 	public static void main(String[] args) {
+		System.out.println("SPRING_PROFILES_ACTIVE: " + System.getenv("SPRING_PROFILES_ACTIVE"));
+		System.out.println("DATABASE_URL: " + System.getenv("DATABASE_URL"));
 		SpringApplication app = new SpringApplication(BackendApplication.class);
 		Environment env = app.run(args).getEnvironment();
 		System.out.println("My active profiles: " + Arrays.toString(env.getActiveProfiles()));
