@@ -85,5 +85,11 @@ Update the DB with migration file
 
 ### Deployment in Railway
 
+First some notes: We can always start the app from the command line using:
+
+./gradlew bootRun
+
+So we can also pass parameters here to make sure we are using the right profile,
+
  - Railway connects to the repo in github and automatically makes a build of the app.
  - 
