@@ -89,7 +89,15 @@ First some notes: We can always start the app from the command line using:
 
 ./gradlew bootRun
 
+We have added a script that allows us to set some env vars and test running the app with those 
+env vars but setting the profile to "prod"
+
+./test-prod.bat (Windows)
+
 So we can also pass parameters here to make sure we are using the right profile,
 
  - Railway connects to the repo in github and automatically makes a build of the app.
+ - We need to set a custom start command
  - 
+`java -jar build/libs/demo-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod`
+`java -jar build/libs/*.jar --spring.profiles.active=prod`
