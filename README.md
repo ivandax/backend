@@ -101,3 +101,10 @@ So we can also pass parameters here to make sure we are using the right profile,
  - 
 `java -jar build/libs/demo-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod`
 `java -jar build/libs/*.jar --spring.profiles.active=prod`
+
+It was also necessary to run the migrations to create tables in the DB.
+This required connecting to the DB (public url) with a liquibase properties files
+Which includes sensitive data, so it's not commited to the repo.
+See Keepass.
+However, important to note that it's important to format the URL like:
+`jdbc:postgresql://mainline.proxy.rlwy.net:38266/railway?currentSchema=public`
