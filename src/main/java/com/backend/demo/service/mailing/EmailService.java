@@ -1,5 +1,6 @@
 package com.backend.demo.service.mailing;
 
+import com.backend.demo.config.ConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.mail.SimpleMailMessage;
@@ -13,6 +14,9 @@ import jakarta.mail.internet.MimeMessage;
 public class EmailService {
     @Autowired
     private JavaMailSender emailSender;
+
+    @Autowired
+    private ConfigProperties configProperties;
 
 
     public void sendSimpleMessage(
@@ -37,8 +41,10 @@ public class EmailService {
 
     public void sendUserVerificationTokenMessage(String to, String subject,
                                                  String verificationToken) throws MessagingException {
+        String allowedOrigin = configProperties.getAllowedOrigin();
         String htmlContent = "<h3>Hello from Todolist app!</h3><p>Follow this <a" +
-                " href=\"http://localhost:5173"
+                " href="
+                + allowedOrigin
                 + "/verify-token/"
                 + verificationToken
                 + "\" target=\"_blank\">link</a> to verify your account</p>";
@@ -47,8 +53,10 @@ public class EmailService {
 
     public void setPasswordRecoveryMessage(String to, String subject,
                                            String passwordRecoveryToken) throws MessagingException {
+        String allowedOrigin = configProperties.getAllowedOrigin();
         String htmlContent = "<h3>Hello from Todolist!</h3><p>Follow this <a" +
-                " href=\"http://localhost:5173"
+                " href="
+                + allowedOrigin
                 + "/set-new-password/"
                 + passwordRecoveryToken
                 + "\" target=\"_blank\">link</a> to reset your password</p>";
