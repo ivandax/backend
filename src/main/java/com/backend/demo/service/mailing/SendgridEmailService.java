@@ -17,7 +17,7 @@ import java.io.IOException;
 @Service
 public class SendgridEmailService {
 
-    @Value("${SENDGRID_API_KEY}")
+    @Value("${spring.mail.password}")
     private String sendGridApiKey;
 
     @Autowired
