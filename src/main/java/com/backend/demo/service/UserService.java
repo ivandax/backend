@@ -9,6 +9,7 @@ import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.EmailService;
+import com.backend.demo.service.mailing.SendgridEmailService;
 import com.backend.demo.utils.JwtUtils;
 import com.backend.demo.utils.PaginationUtils;
 import com.backend.demo.utils.UserUtils;
@@ -46,7 +47,7 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private EmailService emailService;
+    private SendgridEmailService sendgridEmailService;
 
     @Autowired
     private UserVerificationTokenRepository userVerificationTokenRepository;
@@ -81,7 +82,7 @@ public class UserService {
                 verificationToken);
         userVerificationTokenRepository.save(userVerificationToken);
 
-        emailService.sendUserVerificationTokenMessage(username,
+        sendgridEmailService.sendUserVerificationFromSendgrid(username,
                 "Todolist: Please verify your account", verificationToken);
     }
 
@@ -170,8 +171,8 @@ public class UserService {
 
         passwordRecoveryTokenRepository.save(passwordRecoveryToken);
 
-        emailService.setPasswordRecoveryMessage(username,
-                "Taskmaster: Reset your password", recoveryToken);
+        sendgridEmailService.setPasswordRecoveryMessage(username,
+                "Todolist: Reset your password", recoveryToken);
 
     }
 
