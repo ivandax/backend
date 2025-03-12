@@ -64,7 +64,6 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public void testEmail(@RequestBody Map<String, String> body) throws IOException {
         String email = body.get("email");
-        System.out.println(email);
         sendgridEmailService.sendTestMessage(email);
     }
 

@@ -29,12 +29,13 @@ public class SendgridEmailService {
         SendGrid sg = new SendGrid(sendGridApiKey);
         Request request = new Request();
 
-        System.out.println("will send" + sendGridApiKey);
         request.setMethod(Method.POST);
         request.setEndpoint("mail/send");
         request.setBody(mail.build());
-        sg.api(request);
-
+        Response response = sg.api(request);
+        System.out.println("Response status: " + response.getStatusCode());
+        System.out.println("Response body: " + response.getBody());
+        System.out.println("Response headers: " + response.getHeaders());
     }
 
     private void sendEmail(String toEmail, String subject, String htmlContent) throws IOException {
