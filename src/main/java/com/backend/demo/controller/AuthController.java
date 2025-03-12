@@ -6,6 +6,7 @@ import com.backend.demo.dtos.SignUpDTO;
 import com.backend.demo.dtos.VerificationTokenRequestDTO;
 import com.backend.demo.service.LogoutService;
 import com.backend.demo.service.UserService;
+import com.backend.demo.service.mailing.SendgridEmailService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,10 +34,13 @@ public class AuthController {
     @Autowired
     private LogoutService logoutService;
 
+    @Autowired
+    private SendgridEmailService sendgridEmailService;
+
     @RequestMapping(value = "/sign-up", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     public void createOrganizationAndUser(HttpServletRequest request,
-                                          @RequestBody @Valid SignUpDTO dto) throws MessagingException {
+                                          @RequestBody @Valid SignUpDTO dto) throws IOException {
         String username = dto.getEmail();
         String password = dto.getPassword();
         userService.createUserAndOrganization(username, password, request);
@@ -54,6 +58,14 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public String authTest() {
         return new Date().toString();
+    }
+
+    @RequestMapping(value = "/test-email", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void testEmail(@RequestBody Map<String, String> body) throws IOException {
+        String email = body.get("email");
+        System.out.println(email);
+        sendgridEmailService.sendTestMessage(email);
     }
 
     @RequestMapping(value = "/test-for-admin-role", method = RequestMethod.GET)
@@ -80,7 +92,7 @@ public class AuthController {
     @RequestMapping(value = "/renew-token", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     public Map<String, String> refreshTokens(HttpServletRequest request,
-                              HttpServletResponse response) throws IOException {
+                                             HttpServletResponse response) throws IOException {
         String authorizationHeader = request.getHeader(AUTHORIZATION);
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String refreshToken = authorizationHeader.substring("Bearer ".length());
@@ -93,7 +105,7 @@ public class AuthController {
     @RequestMapping(value = "/recover-password", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     public void recoverPassword(HttpServletRequest request,
-                                              @RequestBody @Valid RecoverPasswordDTO dto) throws MessagingException {
+                                @RequestBody @Valid RecoverPasswordDTO dto) throws IOException {
         String username = dto.getEmail();
         userService.recoverPassword(username, request);
     }
@@ -101,7 +113,7 @@ public class AuthController {
     @RequestMapping(value = "/set-new-password", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     public void setNewPassword(HttpServletResponse response,
-                                             @RequestBody @Valid SetNewPasswordDTO dto) throws IOException {
+                               @RequestBody @Valid SetNewPasswordDTO dto) throws IOException {
         String passwordRecoveryToken = dto.getPasswordRecoveryToken();
         String newPassword = dto.getNewPassword();
         userService.setNewPassword(response, passwordRecoveryToken, newPassword);

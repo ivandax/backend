@@ -25,22 +25,19 @@ public class SendgridEmailService {
 
     private static final String FROM_EMAIL = "info@culturetxt.com";
 
-    private void sendMail(Mail mail) {
+    private void sendMail(Mail mail) throws IOException {
         SendGrid sg = new SendGrid(sendGridApiKey);
         Request request = new Request();
 
-        try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sg.api(request);
-            response.getStatusCode();
-        } catch (IOException ex) {
-            ex.getMessage();
-        }
+        System.out.println("will send" + sendGridApiKey);
+        request.setMethod(Method.POST);
+        request.setEndpoint("mail/send");
+        request.setBody(mail.build());
+        sg.api(request);
+
     }
 
-    private void sendEmail(String toEmail, String subject, String htmlContent) {
+    private void sendEmail(String toEmail, String subject, String htmlContent) throws IOException {
         Email from = new Email(FROM_EMAIL);
         Email to = new Email(toEmail);
         Content emailContent = new Content("text/html", htmlContent);
@@ -49,19 +46,32 @@ public class SendgridEmailService {
         sendMail(mail);
     }
 
-    public void sendUserVerificationFromSendgrid(String toEmail, String subject, String verificationToken) {
-        String verificationLink = configProperties.getAllowedOrigin() + "/verify-token/" + verificationToken;
+    public void sendUserVerificationFromSendgrid(String toEmail, String subject,
+                                                 String verificationToken) throws IOException {
+        String verificationLink =
+                configProperties.getAllowedOrigin() + "/verify-token/" + verificationToken;
         String htmlContent = "<h3>Hello from Todolist app!</h3>"
-                + "<p>Follow this <a href=\"" + verificationLink + "\" target=\"_blank\">link</a> to verify your account.</p>";
+                + "<p>Follow this <a href=\"" + verificationLink + "\" target=\"_blank\">link</a>" +
+                " to verify your account.</p>";
 
         sendEmail(toEmail, subject, htmlContent);
     }
 
-    public void setPasswordRecoveryMessage(String toEmail, String subject, String passwordRecoveryToken) {
-        String recoveryLink = configProperties.getAllowedOrigin() + "/set-new-password/" + passwordRecoveryToken;
+    public void setPasswordRecoveryMessage(String toEmail, String subject,
+                                           String passwordRecoveryToken) throws IOException {
+        String recoveryLink =
+                configProperties.getAllowedOrigin() + "/set-new-password/" + passwordRecoveryToken;
         String htmlContent = "<h3>Hello from Todolist!</h3>"
-                + "<p>Follow this <a href=\"" + recoveryLink + "\" target=\"_blank\">link</a> to reset your password.</p>";
+                + "<p>Follow this <a href=\"" + recoveryLink + "\" target=\"_blank\">link</a> to " +
+                "reset your password.</p>";
 
         sendEmail(toEmail, subject, htmlContent);
+    }
+
+    public void sendTestMessage(String toEmail) throws IOException {
+        String htmlContent = "<h3>This is a test message</h3>"
+                + "<p>This is just some placeholder test</p>";
+
+        sendEmail(toEmail, "Test message from todolist app", htmlContent);
     }
 }

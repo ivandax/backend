@@ -60,8 +60,7 @@ public class UserService {
 
     public void createUserAndOrganization(String username,
                                           String password,
-                                          HttpServletRequest request)
-            throws MessagingException {
+                                          HttpServletRequest request) throws IOException {
         Role adminRole = roleRepository.findByRoleName("ADMIN");
         if (adminRole == null) {
             throw new RuntimeException("Roles are not yet created");
@@ -154,7 +153,7 @@ public class UserService {
         return null;
     }
 
-    public void recoverPassword(String username, HttpServletRequest request) throws MessagingException {
+    public void recoverPassword(String username, HttpServletRequest request) throws IOException {
         User user =
                 userRepository.findByUsername(username)
                         .orElseThrow(() -> new IllegalArgumentException("This username was not " +
@@ -177,12 +176,14 @@ public class UserService {
     }
 
     public void setNewPassword(HttpServletResponse response,
-                                             String passwordRecoveryToken,
-                                             String newPassword) throws IOException {
+                               String passwordRecoveryToken,
+                               String newPassword) throws IOException {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(configProperties.getPasswordRecoverySecret().getBytes());
+            Algorithm algorithm =
+                    Algorithm.HMAC256(configProperties.getPasswordRecoverySecret().getBytes());
             String username = JwtUtils.getUsernameFromJWT(algorithm, passwordRecoveryToken);
-            User user = userRepository.findByUsername(username).orElseThrow(()->new BadRequestException("User not found"));
+            User user =
+                    userRepository.findByUsername(username).orElseThrow(() -> new BadRequestException("User not found"));
             Optional<PasswordRecoveryToken> persistedPasswordRecoveryToken =
                     passwordRecoveryTokenRepository.findByBelongsTo(user);
             if (persistedPasswordRecoveryToken.isPresent()) {
