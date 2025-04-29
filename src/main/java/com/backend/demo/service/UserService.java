@@ -8,12 +8,10 @@ import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
-import com.backend.demo.service.mailing.EmailService;
-import com.backend.demo.service.mailing.SendgridEmailService;
+import com.backend.demo.service.mailing.ResendEmailService;
 import com.backend.demo.utils.JwtUtils;
 import com.backend.demo.utils.PaginationUtils;
 import com.backend.demo.utils.UserUtils;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +45,7 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private SendgridEmailService sendgridEmailService;
+    private ResendEmailService resendEmailService;
 
     @Autowired
     private UserVerificationTokenRepository userVerificationTokenRepository;
@@ -81,7 +79,7 @@ public class UserService {
                 verificationToken);
         userVerificationTokenRepository.save(userVerificationToken);
 
-        sendgridEmailService.sendUserVerificationFromSendgrid(username,
+        resendEmailService.sendUserVerificationTokenMessage(username,
                 "Todolist: Please verify your account", verificationToken);
     }
 
@@ -170,7 +168,7 @@ public class UserService {
 
         passwordRecoveryTokenRepository.save(passwordRecoveryToken);
 
-        sendgridEmailService.setPasswordRecoveryMessage(username,
+        resendEmailService.sendPasswordRecoveryMessage(username,
                 "Todolist: Reset your password", recoveryToken);
 
     }

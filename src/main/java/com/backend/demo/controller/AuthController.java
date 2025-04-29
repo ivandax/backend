@@ -6,8 +6,7 @@ import com.backend.demo.dtos.SignUpDTO;
 import com.backend.demo.dtos.VerificationTokenRequestDTO;
 import com.backend.demo.service.LogoutService;
 import com.backend.demo.service.UserService;
-import com.backend.demo.service.mailing.SendgridEmailService;
-import jakarta.mail.MessagingException;
+import com.backend.demo.service.mailing.ResendEmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.coyote.BadRequestException;
@@ -35,7 +34,7 @@ public class AuthController {
     private LogoutService logoutService;
 
     @Autowired
-    private SendgridEmailService sendgridEmailService;
+    private ResendEmailService resendEmailService;
 
     @RequestMapping(value = "/sign-up", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
@@ -61,10 +60,10 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/test-email", method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.CREATED)
-    public void testEmail(@RequestBody Map<String, String> body) throws IOException {
+    @ResponseStatus(HttpStatus.OK)
+    public void testEmail(@RequestBody Map<String, String> body) {
         String email = body.get("email");
-        sendgridEmailService.sendTestMessage(email);
+        resendEmailService.sendTestMessage(email);
     }
 
     @RequestMapping(value = "/test-for-admin-role", method = RequestMethod.GET)
