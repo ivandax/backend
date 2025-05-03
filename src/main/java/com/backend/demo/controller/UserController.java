@@ -2,6 +2,7 @@ package com.backend.demo.controller;
 
 import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.ResourceResponseDTO;
+import com.backend.demo.dtos.User.UserBasicDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.service.CustomUserDetailsService;
 import com.backend.demo.service.UserService;
@@ -23,7 +24,7 @@ public class UserController {
 
     @RequestMapping(value = "", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public ResourceResponseDTO<UserResponseDTO> listAllUsers(
+    public ResourceResponseDTO<UserBasicDTO> listAllUsers(
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "perPage", required = false) Integer perPage,
             @RequestParam(value = "sortBy",required = false) String sortBy,

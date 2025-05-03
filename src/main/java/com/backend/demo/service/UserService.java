@@ -4,7 +4,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.config.CustomUserDetails;
+import com.backend.demo.dtos.CollaboratorDTO;
 import com.backend.demo.dtos.ResourceResponseDTO;
+import com.backend.demo.dtos.User.UserBasicDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
@@ -52,6 +54,9 @@ public class UserService {
 
     @Autowired
     private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
+
+    @Autowired
+    private UserCommonCollaboratorsRepository userCommonCollaboratorsRepository;
 
     @Autowired
     private ConfigProperties configProperties;
@@ -107,14 +112,14 @@ public class UserService {
         }
     }
 
-    public ResourceResponseDTO<UserResponseDTO> findAll(Integer page, Integer perPage,
-                                                        String sortBy,
-                                                        Sort.Direction sortDirection) {
+    public ResourceResponseDTO<UserBasicDTO> findAll(Integer page, Integer perPage,
+                                                     String sortBy,
+                                                     Sort.Direction sortDirection) {
         Pageable paginationConfig = PaginationUtils.getPaginationConfig(page, perPage, sortBy,
                 sortDirection);
         Page<User> users = userRepository.findAll(paginationConfig);
         return new ResourceResponseDTO<>(
-                users.stream().map(UserUtils::userToUserResponseDTO).collect(Collectors.toList()),
+                users.stream().map(UserUtils::userToUserBasicDTO).collect(Collectors.toList()),
                 users.getTotalPages(),
                 PaginationUtils.getPage(page),
                 PaginationUtils.getPerPage(perPage)
@@ -124,7 +129,18 @@ public class UserService {
     public UserResponseDTO findLoggedInUser(CustomUserDetails userPrincipal) throws BadRequestException {
         Optional<User> maybeUser = userRepository.findByUsername(userPrincipal.getUsername());
         User user = maybeUser.orElseThrow(() -> new BadRequestException("User not found"));
-        return UserUtils.userToUserResponseDTO(user);
+
+        List<UserCommonCollaborators> collaboratorEntities =
+                userCommonCollaboratorsRepository.findByUser(user);
+
+        List<CollaboratorDTO> collaborators = collaboratorEntities.stream()
+                .map(entry -> {
+                    User collaborator = entry.getCollaborator();
+                    return new CollaboratorDTO(collaborator.getUserId(),
+                            collaborator.getUsername());
+                }).toList();
+
+        return UserUtils.userToUserResponseDTO(user, collaborators);
     }
 
     public Map<String, String> getNewTokens(

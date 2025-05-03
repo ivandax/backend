@@ -4,8 +4,7 @@ import com.backend.demo.model.Organization;
 import com.backend.demo.model.Role;
 import com.backend.demo.model.User;
 import com.backend.demo.repository.*;
-import com.backend.demo.service.mailing.EmailService;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.backend.demo.service.mailing.ResendEmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +41,7 @@ public class LoginProcessTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private EmailService emailService;
+    private ResendEmailService resendEmailService;
 
     @Autowired
     private ObjectMapper objectMapper;

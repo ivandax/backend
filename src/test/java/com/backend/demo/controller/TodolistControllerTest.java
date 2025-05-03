@@ -6,7 +6,7 @@ import com.backend.demo.dtos.TodoUpdateDTO;
 import com.backend.demo.dtos.TodolistDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
-import com.backend.demo.service.mailing.EmailService;
+import com.backend.demo.service.mailing.ResendEmailService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +46,7 @@ public class TodolistControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private EmailService emailService;
+    private ResendEmailService resendEmailService;
 
     @Autowired
     private ObjectMapper objectMapper;
