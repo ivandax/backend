@@ -87,12 +87,15 @@ public class UserControllerTest {
         organizationRepository.deleteAll();
 
         Permission permissionReadUsers = new Permission("read:users");
+        Permission permissionUpdateUsers = new Permission("update:users");
         Permission permissionReadSelfUser = new Permission("read:self-user");
-        permissionRepository.saveAll(List.of(permissionReadUsers, permissionReadSelfUser));
+        permissionRepository.saveAll(List.of(permissionReadUsers, permissionReadSelfUser,
+                permissionUpdateUsers));
 
         Role dev = new Role("DEV");
         Role admin = new Role("ADMIN");
-        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers, permissionReadSelfUser)));
+        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers, permissionReadSelfUser,
+                permissionUpdateUsers)));
         roleRepository.saveAll(List.of(dev, admin));
 
         User adminUser = new User();
@@ -345,8 +348,49 @@ public class UserControllerTest {
         String accessToken = tokensResponse.get("access_token");
 
         mockMvc.perform(get("/api/users/by-username/{username}", "nonexistentuser").header(
-                "authorization"
+                        "authorization"
                         , "Bearer " + accessToken))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Fail: Cannot add yourself as collaborator")
+    public void addCollaboratorCannotAddYourself() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        MvcResult userResult = mockMvc.perform(get("/api/users/by-username/{username}", "admin" +
+                        "@mail.com")
+                        .header("authorization", "Bearer " + accessToken)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, Object> userData =
+                objectMapper.readValue(userResult.getResponse().getContentAsString(), Map.class);
+        Integer userId = ((Number) userData.get("userId")).intValue();
+
+        record AddCollaboratorRequest(Integer collaboratorId) {
+        }
+
+        AddCollaboratorRequest request = new AddCollaboratorRequest(userId);
+        String payload = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post("/api/users/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("A user cannot add themselves as a collaborator")));
     }
 }

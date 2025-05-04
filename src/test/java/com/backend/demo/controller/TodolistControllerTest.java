@@ -557,10 +557,12 @@ public class TodolistControllerTest {
         String accessToken = tokensResponse.get("access_token");
 
         // Step 2: Create a todolist with no todos
-        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {}
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
+        }
 
         CreateTodolistRequest createRequest =
-                new CreateTodolistRequest("Todo List for Adding", "Testing adding todos", new ArrayList<>());
+                new CreateTodolistRequest("Todo List for Adding", "Testing adding todos",
+                        new ArrayList<>());
 
         String createPayload = objectMapper.writeValueAsString(createRequest);
 
@@ -578,7 +580,8 @@ public class TodolistControllerTest {
         record UpdateTodolistRequest(String title, String description,
                                      List<TodoUpdateDTO> updateTodos,
                                      List<TodoRequestDTO> createTodos,
-                                     List<String> deleteTodoIds) {}
+                                     List<String> deleteTodoIds) {
+        }
 
         TodoRequestDTO newTodo = new TodoRequestDTO("Newly added todo", false, 1);
         UpdateTodolistRequest updateRequest =
@@ -600,7 +603,8 @@ public class TodolistControllerTest {
                         .orElseThrow(() -> new RuntimeException("Todolist not found"));
 
         assertEquals(1, updatedTodolistWithTodos.getTodos().size());
-        assertEquals("Newly added todo", updatedTodolistWithTodos.getTodos().get(0).getDescription());
+        assertEquals("Newly added todo",
+                updatedTodolistWithTodos.getTodos().get(0).getDescription());
     }
 
     @Test
@@ -619,11 +623,13 @@ public class TodolistControllerTest {
         String accessToken = tokensResponse.get("access_token");
 
         // Step 2: Create a todo list with one todo
-        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {}
+        record CreateTodolistRequest(String title, String description, List<TodoRequestDTO> todos) {
+        }
 
         TodoRequestDTO todo = new TodoRequestDTO("Todo to delete", false, 1);
         CreateTodolistRequest createRequest =
-                new CreateTodolistRequest("Todo List for Deletion", "Testing deleting todos", List.of(todo));
+                new CreateTodolistRequest("Todo List for Deletion", "Testing deleting todos",
+                        List.of(todo));
 
         String createPayload = objectMapper.writeValueAsString(createRequest);
 
@@ -645,7 +651,8 @@ public class TodolistControllerTest {
         record UpdateTodolistRequest(String title, String description,
                                      List<TodoUpdateDTO> updateTodos,
                                      List<TodoRequestDTO> createTodos,
-                                     List<String> deleteTodoIds) {}
+                                     List<String> deleteTodoIds) {
+        }
 
         UpdateTodolistRequest updateRequest =
                 new UpdateTodolistRequest("Todo List for Deletion", "Testing deleting todos",
