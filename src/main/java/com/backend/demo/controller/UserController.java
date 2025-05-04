@@ -1,11 +1,14 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.config.CustomUserDetails;
+import com.backend.demo.dtos.AddCollaboratorRequestDTO;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserBasicDTO;
+import com.backend.demo.dtos.User.UserIdDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.service.CustomUserDetailsService;
 import com.backend.demo.service.UserService;
+import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -37,6 +40,20 @@ public class UserController {
     public UserResponseDTO getLoggedInUser(
             @AuthenticationPrincipal CustomUserDetails userPrincipal) throws BadRequestException {
         return userService.findLoggedInUser(userPrincipal);
+    }
+
+    @RequestMapping(value = "/add-collaborator", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addCommonCollaborator(
+            @AuthenticationPrincipal CustomUserDetails userPrincipal,
+            @RequestBody @Valid AddCollaboratorRequestDTO dto) throws BadRequestException {
+        userService.addCommonCollaborator(userPrincipal.getUsername(), dto.getCollaboratorId());
+    }
+
+    @RequestMapping(value = "/by-username/{username}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public UserIdDTO getUserByUsername(@PathVariable String username) throws BadRequestException {
+        return userService.getUserByUsername(username);
     }
 
 }

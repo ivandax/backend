@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -165,7 +166,8 @@ public class UserControllerTest {
         List<UserResponseDTO> users = response.getItems();
 
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail" +
+                ".com"));
         assertEquals(2, users.size(), "Should have exactly 2 users in items array");
     }
 
@@ -201,7 +203,8 @@ public class UserControllerTest {
         List<UserResponseDTO> users = response.getItems();
 
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail" +
+                ".com"));
         assertEquals(2, users.size(), "Should have exactly 2 users in items array");
         UserResponseDTO firstItem = users.get(0);
         UserResponseDTO secondItem = users.get(1);
@@ -241,7 +244,8 @@ public class UserControllerTest {
         List<UserResponseDTO> users = response.getItems();
 
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail" +
+                ".com"));
         assertEquals(2, users.size(), "Should have exactly 2 users in items array");
         UserResponseDTO firstItem = users.get(0);
         UserResponseDTO secondItem = users.get(1);
@@ -300,5 +304,49 @@ public class UserControllerTest {
                 .andReturn();
 
         assertTrue(userResult.getResponse().getContentAsString().contains("admin@mail.com"));
+    }
+
+    @Test
+    void shouldReturnUserByUsername() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        String username = "admin@mail.com";
+        mockMvc.perform(get("/api/users/by-username/{username}", username).header("authorization"
+                                , "Bearer " + accessToken)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(username));
+    }
+
+    @Test
+    void shouldReturn404WhenUserNotFound() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(get("/api/users/by-username/{username}", "nonexistentuser").header(
+                "authorization"
+                        , "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
     }
 }

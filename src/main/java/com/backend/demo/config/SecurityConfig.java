@@ -107,6 +107,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/todolists").hasAuthority("read:todolist")
                         .requestMatchers("/api/users").hasAuthority("read:users")
                         .requestMatchers("/api/users/logged-in-user").hasAuthority("read:self-user")
+                        .requestMatchers("/api/users/add-collaborator").hasAuthority("update:users")
+                        .requestMatchers("/api/users/by-username/{username}").hasAuthority("read:users")
                         .anyRequest()
                         .authenticated()
                 ).addFilter(customAuthenticationFilter())

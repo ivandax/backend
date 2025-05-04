@@ -7,6 +7,7 @@ import com.backend.demo.config.CustomUserDetails;
 import com.backend.demo.dtos.CollaboratorDTO;
 import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserBasicDTO;
+import com.backend.demo.dtos.User.UserIdDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
@@ -20,9 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -211,5 +214,38 @@ public class UserService {
         } catch (JWTVerificationException exception) {
             JwtUtils.catchVerificationTokenError(response, exception);
         }
+    }
+
+    public void addCommonCollaborator(String username, Integer collaboratorId) throws BadRequestException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        User collaborator = userRepository.findById(collaboratorId)
+                .orElseThrow(() -> new BadRequestException("Collaborator not found"));
+
+        if (user.equals(collaborator)) {
+            throw new BadRequestException("A user cannot add themselves as a collaborator");
+        }
+
+        // Check if the relationship already exists
+        boolean alreadyExists =
+                userCommonCollaboratorsRepository.existsByUserAndCollaborator(user, collaborator);
+        boolean reverseExists =
+                userCommonCollaboratorsRepository.existsByUserAndCollaborator(collaborator, user);
+        if (alreadyExists || reverseExists) {
+            throw new BadRequestException("This collaborator relationship already exists");
+        }
+
+        UserCommonCollaborators relation = new UserCommonCollaborators(user, collaborator);
+        UserCommonCollaborators reverseRelation = new UserCommonCollaborators(collaborator, user);
+
+        userCommonCollaboratorsRepository.saveAll(List.of(relation, reverseRelation));
+    }
+
+    public UserIdDTO getUserByUsername(String username) throws ResponseStatusException {
+        User userEntity = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not " +
+                        "found"));
+        return UserUtils.userToUserIdDTO(userEntity);
     }
 }

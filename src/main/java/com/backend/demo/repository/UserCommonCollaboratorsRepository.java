@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface UserCommonCollaboratorsRepository extends JpaRepository<UserCommonCollaborators, Integer> {
     List<UserCommonCollaborators> findByUser(User user);
+
+    boolean existsByUserAndCollaborator(User user, User collaborator);
 }

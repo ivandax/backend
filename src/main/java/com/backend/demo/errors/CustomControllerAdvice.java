@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.PrintWriter;
@@ -19,13 +20,33 @@ import java.io.StringWriter;
 @ControllerAdvice
 public class CustomControllerAdvice {
 
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(
+            Exception e
+    ) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
+        String stackTrace = stringWriter.toString();
+
+        return new ResponseEntity<>(
+                new ErrorResponse(
+                        status,
+                        e.getMessage(),
+                        stackTrace
+                ),
+                status
+        );
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
             Exception e
     ) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        // converting the stack trace to String
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
@@ -47,7 +68,6 @@ public class CustomControllerAdvice {
     ) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        // converting the stack trace to String
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
@@ -70,7 +90,6 @@ public class CustomControllerAdvice {
     ) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        // converting the stack trace to String
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
@@ -92,7 +111,6 @@ public class CustomControllerAdvice {
     ) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        // converting the stack trace to String
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
