@@ -32,6 +32,9 @@ public class TodolistService {
     private TodoRepository todoRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private ConfigProperties configProperties;
 
     public void createTodolist(User user, TodolistCreateRequestDTO todolistRequestDTO) {
@@ -155,5 +158,29 @@ public class TodolistService {
         }
 
         todolistRepository.delete(todolist);
+    }
+
+    public void addCollaboratorToTodolist(Integer todolistId, Integer collaboratorId,
+                                          CustomUserDetails userDetails) throws BadRequestException {
+        Todolist todolist = todolistRepository.findById(todolistId)
+                .orElseThrow(() -> new BadRequestException("Todolist not found"));
+
+        if (!checkCanEdit(todolist, userDetails)) {
+            throw new BadRequestException("You don't have permission to share this todolist");
+        }
+
+        User collaborator = userRepository.findById(collaboratorId)
+                .orElseThrow(() -> new BadRequestException("User to add not found"));
+
+        if (collaborator.getUserId().equals(userDetails.getUser().getUserId())) {
+            throw new BadRequestException("You cannot add yourself as a collaborator");
+        }
+
+        if (todolist.getSharedWith().contains(collaborator)) {
+            throw new BadRequestException("This user is already a collaborator");
+        }
+
+        todolist.getSharedWith().add(collaborator);
+        todolistRepository.save(todolist);
     }
 }

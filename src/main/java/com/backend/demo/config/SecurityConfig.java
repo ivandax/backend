@@ -98,6 +98,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/set-new-password").permitAll()
                         .requestMatchers("/api/todolists/create").hasAuthority("create:todolist")
                         .requestMatchers("/api/todolists/{id}/delete").hasAuthority("update:todolist")
+                        .requestMatchers("/api/todolists/{id}/add-collaborator").hasAuthority("update:todolist")
                         .requestMatchers("/api/todolists/{id}/update").hasAuthority("update" +
                                 ":todolist")
                         .requestMatchers("/api/todolists/{id}/add-todo").hasAuthority("update" +

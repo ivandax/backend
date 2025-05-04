@@ -76,4 +76,12 @@ public class TodolistController {
         todolistService.deleteTodolist(id, userPrincipal);
     }
 
+    @RequestMapping(value = "/{id}/add-collaborator", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    public void addCollaborator(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserDetails userPrincipal,
+            @RequestBody @Valid AddCollaboratorRequestDTO dto) throws BadRequestException {
+        todolistService.addCollaboratorToTodolist(id, dto.getCollaboratorId(), userPrincipal);
+    }
 }
