@@ -1,9 +1,6 @@
 package com.backend.demo.controller;
 
-import com.backend.demo.dtos.ResourceResponseDTO;
-import com.backend.demo.dtos.TodoRequestDTO;
-import com.backend.demo.dtos.TodoUpdateDTO;
-import com.backend.demo.dtos.TodolistDTO;
+import com.backend.demo.dtos.*;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
 import com.backend.demo.service.mailing.ResendEmailService;
@@ -28,8 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -111,6 +107,13 @@ public class TodolistControllerTest {
         adminUser.setPassword("testPassword");
         adminUser.setVerified(true);
         userRepository.save(adminUser);
+
+        User adminUser2 = new User();
+        adminUser2.addRole(admin);
+        adminUser2.setUsername("admin2@mail.com");
+        adminUser2.setPassword("testPassword");
+        adminUser2.setVerified(true);
+        userRepository.save(adminUser2);
 
         User noRoleUser = new User();
         noRoleUser.setUsername("no_permissions@mail.com");
@@ -1012,5 +1015,231 @@ public class TodolistControllerTest {
         assertTrue(todolistRepository.findById(todolist.getId()).isEmpty());
         // Verify associated todo was also deleted (cascade)
         assertTrue(todoRepository.findById(todo.getId()).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Failure: Cannot add collaborator without permission")
+    public void addCollaboratorNoPermission() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Get the owner user
+        User owner = userRepository.findByUsername("admin2@mail.com")
+                .orElseThrow(() -> new RuntimeException("Owner user not found"));
+
+        // Create a todolist as the owner
+        Todolist todolist = new Todolist(owner);
+        todolist.setTitle("Private Todolist");
+        todolistRepository.save(todolist);
+
+        // Login as another user (non-owner) trying to add collaborator
+        MvcResult otherLoginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> otherTokens =
+                objectMapper.readValue(otherLoginResult.getResponse().getContentAsString(),
+                        Map.class);
+        String otherAccessToken = otherTokens.get("access_token");
+
+        // Find the user to be added as a collaborator (must be different from "other")
+        User collaborator = userRepository.findByUsername("no_permissions@mail.com")
+                .orElseThrow(() -> new RuntimeException("Collaborator user not found"));
+
+        record AddCollaboratorBody(Integer collaboratorId) {
+        }
+
+        AddCollaboratorBody request = new AddCollaboratorBody(collaborator.getUserId());
+        String payload = objectMapper.writeValueAsString(request);
+
+        // Perform the request as a non-owner user
+        mockMvc.perform(post("/api/todolists/" + todolist.getId() + "/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + otherAccessToken)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse()
+                        .getContentAsString()
+                        .contains("You don't have permission to share this todolist")));
+    }
+
+    @Test
+    @DisplayName("Failure: User to add as collaborator not found")
+    public void addCollaboratorUserNotFound() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Login as owner who will share the todolist
+        MvcResult ownerLoginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> ownerTokens =
+                objectMapper.readValue(ownerLoginResult.getResponse().getContentAsString(), Map.class);
+        String ownerAccessToken = ownerTokens.get("access_token");
+
+        // Get the user object of the owner
+        User owner = userRepository.findByUsername("admin@mail.com")
+                .orElseThrow(() -> new RuntimeException("Owner user not found"));
+
+        // Create a todolist for this user
+        Todolist todolist = new Todolist(owner);
+        todolist.setTitle("Todolist for invalid collaborator");
+        todolistRepository.save(todolist);
+
+        // Use a collaborator ID that doesn't exist
+        int invalidCollaboratorId = 999999; // Assumes this ID doesn't exist
+
+        // Prepare request body as record
+        record AddCollaboratorBody(Integer collaboratorId) {}
+        AddCollaboratorBody request = new AddCollaboratorBody(invalidCollaboratorId);
+        String payload = objectMapper.writeValueAsString(request);
+
+        // Perform the request as the owner
+        mockMvc.perform(post("/api/todolists/" + todolist.getId() + "/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + ownerAccessToken)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse()
+                        .getContentAsString()
+                        .contains("User to add not found")));
+    }
+
+    @Test
+    @DisplayName("Failure: Cannot add yourself as a collaborator")
+    public void addCollaboratorSelfNotAllowed() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Login as the user who will own the todolist and try to add themselves
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> tokens =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokens.get("access_token");
+
+        // Get the user
+        User user = userRepository.findByUsername("admin@mail.com")
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Create a todolist owned by this user
+        Todolist todolist = new Todolist(user);
+        todolist.setTitle("Self-collaborator test");
+        todolistRepository.save(todolist);
+
+        // Attempt to add self as collaborator
+        record AddCollaboratorBody(Integer collaboratorId) {}
+        AddCollaboratorBody request = new AddCollaboratorBody(user.getUserId());
+        String payload = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post("/api/todolists/" + todolist.getId() + "/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse()
+                        .getContentAsString()
+                        .contains("You cannot add yourself as a collaborator")));
+    }
+
+    @Test
+    @DisplayName("Failure: User is already a collaborator")
+    public void addCollaboratorAlreadyExists() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Login as the owner of the todolist
+        MvcResult ownerLoginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> ownerTokens =
+                objectMapper.readValue(ownerLoginResult.getResponse().getContentAsString(), Map.class);
+        String ownerAccessToken = ownerTokens.get("access_token");
+
+        // Get owner user
+        User owner = userRepository.findByUsername("admin@mail.com")
+                .orElseThrow(() -> new RuntimeException("Owner user not found"));
+
+        // Get another user to add as a collaborator
+        User collaborator = userRepository.findByUsername("no_permissions@mail.com")
+                .orElseThrow(() -> new RuntimeException("Collaborator user not found"));
+
+        // Create a todolist and manually add collaborator
+        Todolist todolist = new Todolist(owner);
+        todolist.setTitle("Todolist with duplicate collaborator");
+        todolist.getSharedWith().add(collaborator); // Manually add collaborator
+        todolistRepository.save(todolist);
+
+        // Attempt to add the same collaborator again
+        record AddCollaboratorBody(Integer collaboratorId) {}
+        AddCollaboratorBody request = new AddCollaboratorBody(collaborator.getUserId());
+        String payload = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post("/api/todolists/" + todolist.getId() + "/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + ownerAccessToken)
+                        .content(payload))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse()
+                        .getContentAsString()
+                        .contains("This user is already a collaborator")));
+    }
+
+    @Test
+    @DisplayName("Success: Add collaborator to todolist")
+    public void addCollaboratorSuccess() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Login as the owner
+        MvcResult ownerLoginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, String> ownerTokens =
+                objectMapper.readValue(ownerLoginResult.getResponse().getContentAsString(), Map.class);
+        String ownerAccessToken = ownerTokens.get("access_token");
+
+        // Get owner user
+        User owner = userRepository.findByUsername("admin@mail.com")
+                .orElseThrow(() -> new RuntimeException("Owner user not found"));
+
+        // Get collaborator user
+        User collaborator = userRepository.findByUsername("no_permissions@mail.com")
+                .orElseThrow(() -> new RuntimeException("Collaborator user not found"));
+
+        // Create a todolist as the owner
+        Todolist todolist = new Todolist(owner);
+        todolist.setTitle("Shareable Todolist");
+        todolistRepository.save(todolist);
+
+        // Make sure the collaborator is not already added
+        assertFalse(todolist.getSharedWith().contains(collaborator));
+
+        // Prepare request payload
+        record AddCollaboratorBody(Integer collaboratorId) {}
+        AddCollaboratorBody request = new AddCollaboratorBody(collaborator.getUserId());
+        String payload = objectMapper.writeValueAsString(request);
+
+        // Send the request to add the collaborator
+        mockMvc.perform(post("/api/todolists/" + todolist.getId() + "/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + ownerAccessToken)
+                        .content(payload))
+                .andExpect(status().isOk());
     }
 }
