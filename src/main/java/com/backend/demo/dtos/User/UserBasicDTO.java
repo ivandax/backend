@@ -1,32 +1,26 @@
 package com.backend.demo.dtos.User;
 
-import com.backend.demo.dtos.CollaboratorDTO;
-
 import java.util.List;
 
-public class UserResponseDTO {
+public class UserBasicDTO {
     private Integer userId;
     private String username;
     private List<String> roles;
-
-    private List<CollaboratorDTO> commonCollaborators;
 
     private boolean isActive;
 
     private boolean isVerified;
 
-    public UserResponseDTO() {
+    public UserBasicDTO() {
     }
 
-    public UserResponseDTO(Integer userId, String username,
-                           List<String> roles, boolean isVerified, boolean isActive,
-                           List<CollaboratorDTO> collaborators) {
+    public UserBasicDTO(Integer userId, String username,
+                        List<String> roles, boolean isVerified, boolean isActive) {
         this.userId = userId;
         this.username = username;
         this.roles = roles;
         this.isActive = isActive;
         this.isVerified = isVerified;
-        this.commonCollaborators = collaborators;
     }
 
     public Integer getUserId() {
@@ -69,11 +63,4 @@ public class UserResponseDTO {
         isVerified = verified;
     }
 
-    public List<CollaboratorDTO> getCommonCollaborators() {
-        return commonCollaborators;
-    }
-
-    public void setCommonCollaborators(List<CollaboratorDTO> commonCollaborators) {
-        this.commonCollaborators = commonCollaborators;
-    }
 }

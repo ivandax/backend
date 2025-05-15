@@ -4,7 +4,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.backend.demo.config.ConfigProperties;
 import com.backend.demo.config.CustomUserDetails;
+import com.backend.demo.dtos.CollaboratorDTO;
 import com.backend.demo.dtos.ResourceResponseDTO;
+import com.backend.demo.dtos.User.UserBasicDTO;
+import com.backend.demo.dtos.User.UserIdDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
@@ -18,9 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -52,6 +57,9 @@ public class UserService {
 
     @Autowired
     private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
+
+    @Autowired
+    private UserCommonCollaboratorsRepository userCommonCollaboratorsRepository;
 
     @Autowired
     private ConfigProperties configProperties;
@@ -107,14 +115,14 @@ public class UserService {
         }
     }
 
-    public ResourceResponseDTO<UserResponseDTO> findAll(Integer page, Integer perPage,
-                                                        String sortBy,
-                                                        Sort.Direction sortDirection) {
+    public ResourceResponseDTO<UserBasicDTO> findAll(Integer page, Integer perPage,
+                                                     String sortBy,
+                                                     Sort.Direction sortDirection) {
         Pageable paginationConfig = PaginationUtils.getPaginationConfig(page, perPage, sortBy,
                 sortDirection);
         Page<User> users = userRepository.findAll(paginationConfig);
         return new ResourceResponseDTO<>(
-                users.stream().map(UserUtils::userToUserResponseDTO).collect(Collectors.toList()),
+                users.stream().map(UserUtils::userToUserBasicDTO).collect(Collectors.toList()),
                 users.getTotalPages(),
                 PaginationUtils.getPage(page),
                 PaginationUtils.getPerPage(perPage)
@@ -124,7 +132,18 @@ public class UserService {
     public UserResponseDTO findLoggedInUser(CustomUserDetails userPrincipal) throws BadRequestException {
         Optional<User> maybeUser = userRepository.findByUsername(userPrincipal.getUsername());
         User user = maybeUser.orElseThrow(() -> new BadRequestException("User not found"));
-        return UserUtils.userToUserResponseDTO(user);
+
+        List<UserCommonCollaborators> collaboratorEntities =
+                userCommonCollaboratorsRepository.findByUser(user);
+
+        List<CollaboratorDTO> collaborators = collaboratorEntities.stream()
+                .map(entry -> {
+                    User collaborator = entry.getCollaborator();
+                    return new CollaboratorDTO(collaborator.getUserId(),
+                            collaborator.getUsername());
+                }).toList();
+
+        return UserUtils.userToUserResponseDTO(user, collaborators);
     }
 
     public Map<String, String> getNewTokens(
@@ -195,5 +214,38 @@ public class UserService {
         } catch (JWTVerificationException exception) {
             JwtUtils.catchVerificationTokenError(response, exception);
         }
+    }
+
+    public void addCommonCollaborator(String username, Integer collaboratorId) throws BadRequestException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        User collaborator = userRepository.findById(collaboratorId)
+                .orElseThrow(() -> new BadRequestException("Collaborator not found"));
+
+        if (user.equals(collaborator)) {
+            throw new BadRequestException("A user cannot add themselves as a collaborator");
+        }
+
+        // Check if the relationship already exists
+        boolean alreadyExists =
+                userCommonCollaboratorsRepository.existsByUserAndCollaborator(user, collaborator);
+        boolean reverseExists =
+                userCommonCollaboratorsRepository.existsByUserAndCollaborator(collaborator, user);
+        if (alreadyExists || reverseExists) {
+            throw new BadRequestException("This collaborator relationship already exists");
+        }
+
+        UserCommonCollaborators relation = new UserCommonCollaborators(user, collaborator);
+        UserCommonCollaborators reverseRelation = new UserCommonCollaborators(collaborator, user);
+
+        userCommonCollaboratorsRepository.saveAll(List.of(relation, reverseRelation));
+    }
+
+    public UserIdDTO getUserByUsername(String username) throws ResponseStatusException {
+        User userEntity = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not " +
+                        "found"));
+        return UserUtils.userToUserIdDTO(userEntity);
     }
 }

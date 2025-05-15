@@ -4,7 +4,7 @@ import com.backend.demo.dtos.ResourceResponseDTO;
 import com.backend.demo.dtos.User.UserResponseDTO;
 import com.backend.demo.model.*;
 import com.backend.demo.repository.*;
-import com.backend.demo.service.mailing.EmailService;
+import com.backend.demo.service.mailing.ResendEmailService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -41,7 +42,7 @@ public class UserControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private EmailService emailService;
+    private ResendEmailService resendEmailService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -73,6 +74,9 @@ public class UserControllerTest {
     @Autowired
     private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
 
+    @Autowired
+    private UserCommonCollaboratorsRepository userCommonCollaboratorsRepository;
+
     @BeforeEach
     void setup() {
         todoRepository.deleteAll();
@@ -80,18 +84,22 @@ public class UserControllerTest {
         passwordRecoveryTokenRepository.deleteAll();
         invalidTokenRepository.deleteAll();
         userVerificationTokenRepository.deleteAll();
+        userCommonCollaboratorsRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
         permissionRepository.deleteAll();
         organizationRepository.deleteAll();
 
         Permission permissionReadUsers = new Permission("read:users");
+        Permission permissionUpdateUsers = new Permission("update:users");
         Permission permissionReadSelfUser = new Permission("read:self-user");
-        permissionRepository.saveAll(List.of(permissionReadUsers, permissionReadSelfUser));
+        permissionRepository.saveAll(List.of(permissionReadUsers, permissionReadSelfUser,
+                permissionUpdateUsers));
 
         Role dev = new Role("DEV");
         Role admin = new Role("ADMIN");
-        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers, permissionReadSelfUser)));
+        admin.setPermissions(new HashSet<>(List.of(permissionReadUsers, permissionReadSelfUser,
+                permissionUpdateUsers)));
         roleRepository.saveAll(List.of(dev, admin));
 
         User adminUser = new User();
@@ -165,7 +173,8 @@ public class UserControllerTest {
         List<UserResponseDTO> users = response.getItems();
 
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail" +
+                ".com"));
         assertEquals(2, users.size(), "Should have exactly 2 users in items array");
     }
 
@@ -201,7 +210,8 @@ public class UserControllerTest {
         List<UserResponseDTO> users = response.getItems();
 
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail" +
+                ".com"));
         assertEquals(2, users.size(), "Should have exactly 2 users in items array");
         UserResponseDTO firstItem = users.get(0);
         UserResponseDTO secondItem = users.get(1);
@@ -241,7 +251,8 @@ public class UserControllerTest {
         List<UserResponseDTO> users = response.getItems();
 
         assertTrue(usersResult.getResponse().getContentAsString().contains("admin@mail.com"));
-        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail.com"));
+        assertTrue(usersResult.getResponse().getContentAsString().contains("no_permissions@mail" +
+                ".com"));
         assertEquals(2, users.size(), "Should have exactly 2 users in items array");
         UserResponseDTO firstItem = users.get(0);
         UserResponseDTO secondItem = users.get(1);
@@ -300,5 +311,181 @@ public class UserControllerTest {
                 .andReturn();
 
         assertTrue(userResult.getResponse().getContentAsString().contains("admin@mail.com"));
+    }
+
+    @Test
+    void shouldReturnUserByUsername() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        String username = "admin@mail.com";
+        mockMvc.perform(get("/api/users/by-username/{username}", username).header("authorization"
+                                , "Bearer " + accessToken)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(username));
+    }
+
+    @Test
+    void shouldReturn404WhenUserNotFound() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType
+                                .APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        mockMvc.perform(get("/api/users/by-username/{username}", "nonexistentuser").header(
+                        "authorization"
+                        , "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Fail: Cannot add yourself as collaborator")
+    public void addCollaboratorCannotAddYourself() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        MvcResult userResult = mockMvc.perform(get("/api/users/by-username/{username}", "admin" +
+                        "@mail.com")
+                        .header("authorization", "Bearer " + accessToken)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, Object> userData =
+                objectMapper.readValue(userResult.getResponse().getContentAsString(), Map.class);
+        Integer userId = ((Number) userData.get("userId")).intValue();
+
+        record AddCollaboratorRequest(Integer collaboratorId) {
+        }
+
+        AddCollaboratorRequest request = new AddCollaboratorRequest(userId);
+        String payload = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post("/api/users/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("A user cannot add themselves as a collaborator")));
+    }
+
+    @Test
+    @DisplayName("Fail: Cannot add the same collaborator twice")
+    public void addCollaboratorDuplicate() throws Exception {
+        // Step 1: Login as admin
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Step 2: Get user2's ID
+        MvcResult userResult = mockMvc.perform(get("/api/users/by-username/{username}", "no_permissions@mail.com")
+                        .header("authorization", "Bearer " + accessToken)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, Object> userData =
+                objectMapper.readValue(userResult.getResponse().getContentAsString(), Map.class);
+        Integer userId = ((Number) userData.get("userId")).intValue();
+
+        record AddCollaboratorRequest(Integer collaboratorId) {
+        }
+
+        AddCollaboratorRequest request = new AddCollaboratorRequest(userId);
+        String payload = objectMapper.writeValueAsString(request);
+
+        // Step 3: First call should succeed
+        mockMvc.perform(post("/api/users/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
+
+        // Step 4: Second call should fail with a meaningful message
+        mockMvc.perform(post("/api/users/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("This collaborator relationship already exists")));
+    }
+
+    @Test
+    @DisplayName("Success: Add collaborator")
+    public void addCollaboratorSuccess() throws Exception {
+        // Step 1: Login as admin
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("username", "admin@mail.com")
+                        .param("password", "testPassword"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> tokensResponse =
+                objectMapper.readValue(loginResult.getResponse().getContentAsString(), Map.class);
+        String accessToken = tokensResponse.get("access_token");
+
+        // Step 2: Get user2's ID
+        MvcResult userResult = mockMvc.perform(get("/api/users/by-username/{username}", "no_permissions@mail.com")
+                        .header("authorization", "Bearer " + accessToken)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, Object> userData =
+                objectMapper.readValue(userResult.getResponse().getContentAsString(), Map.class);
+        Integer userId = ((Number) userData.get("userId")).intValue();
+
+        record AddCollaboratorRequest(Integer collaboratorId) {
+        }
+
+        AddCollaboratorRequest request = new AddCollaboratorRequest(userId);
+        String payload = objectMapper.writeValueAsString(request);
+
+        // Step 3: First call should succeed
+        mockMvc.perform(post("/api/users/add-collaborator")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload)
+                        .header("authorization", "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
     }
 }

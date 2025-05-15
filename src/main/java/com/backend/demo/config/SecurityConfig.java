@@ -98,6 +98,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/set-new-password").permitAll()
                         .requestMatchers("/api/todolists/create").hasAuthority("create:todolist")
                         .requestMatchers("/api/todolists/{id}/delete").hasAuthority("update:todolist")
+                        .requestMatchers("/api/todolists/{id}/add-collaborator").hasAuthority("update:todolist")
                         .requestMatchers("/api/todolists/{id}/update").hasAuthority("update" +
                                 ":todolist")
                         .requestMatchers("/api/todolists/{id}/add-todo").hasAuthority("update" +
@@ -107,6 +108,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/todolists").hasAuthority("read:todolist")
                         .requestMatchers("/api/users").hasAuthority("read:users")
                         .requestMatchers("/api/users/logged-in-user").hasAuthority("read:self-user")
+                        .requestMatchers("/api/users/add-collaborator").hasAuthority("update:users")
+                        .requestMatchers("/api/users/by-username/{username}").hasAuthority("read:users")
                         .anyRequest()
                         .authenticated()
                 ).addFilter(customAuthenticationFilter())
